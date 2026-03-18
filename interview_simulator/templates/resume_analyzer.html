@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="row g-4">
+    <div class="col-lg-6 reveal">
+        <div class="glass-panel h-100">
+            <h2 class="mb-2">Resume Analyzer</h2>
+            <p class="text-muted mb-4">Upload a PDF resume to extract skills and check role compatibility score.</p>
+
+            <form method="post" enctype="multipart/form-data" class="row g-3">
+                <div class="col-12">
+                    <label class="form-label" for="role">Target Role</label>
+                    <select class="form-select" id="role" name="role">
+                        {% for role in roles %}
+                            <option value="{{ role }}">{{ role }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="resume">Resume PDF</label>
+                    <input class="form-control" type="file" id="resume" name="resume" accept="application/pdf" required>
+                </div>
+                <div class="col-12 d-grid">
+                    <button class="btn btn-brand btn-lg" type="submit">Analyze Resume</button>
+                </div>
+            </form>
+
+            <hr>
+            <h5 class="mb-3">Recent Analyses</h5>
+            {% if recent_profiles %}
+                <ul class="list-unstyled mb-0">
+                    {% for item in recent_profiles %}
+                        <li class="weak-item">
+                            <div>
+                                <strong>{{ item.role }}</strong>
+                                <p class="mb-0 text-muted">{{ item.filename }}</p>
+                            </div>
+                            <span class="score-pill">{{ item.match_score }}%</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="mb-0">No previous analyses yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-6 reveal">
+        <div class="glass-panel h-100">
+            <h3 class="mb-3">Analysis Result</h3>
+            {% if result %}
+                <div class="metric-card mb-3">
+                    <p class="mini-label">Role Match Score</p>
+                    <h2>{{ result.match_score }}%</h2>
+                    <p class="mb-0 text-muted">Resume: {{ result.filename }} | Words: {{ result.word_count }}</p>
+                </div>
+
+                <h5 class="mb-2">Detected Skills</h5>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    {% if result.skills %}
+                        {% for skill in result.skills %}
+                            <span class="pill-chip">{{ skill }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <p class="mb-0">No known skills detected in the selected resume.</p>
+                    {% endif %}
+                </div>
+
+                <h5 class="mb-2">Matched Skills</h5>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    {% for skill in result.matched_skills %}
+                        <span class="pill-chip skill-ok">{{ skill }}</span>
+                    {% else %}
+                        <p class="mb-0">No direct role match found.</p>
+                    {% endfor %}
+                </div>
+
+                <h5 class="mb-2">Missing Skills</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for skill in result.missing_skills %}
+                        <span class="pill-chip skill-miss">{{ skill }}</span>
+                    {% else %}
+                        <p class="mb-0 text-success">Great fit. No key skill gaps detected.</p>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="mb-0">Upload a resume to view extracted skills, role fit percentage, and targeted improvement suggestions.</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

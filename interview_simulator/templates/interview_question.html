@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center g-4">
+    <div class="col-xl-9 reveal">
+        <div class="glass-panel">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div>
+                    <span class="kicker">Question {{ question_number }} of {{ total_questions }}</span>
+                    <h3 class="mb-0 mt-1">{{ question.prompt }}</h3>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        <span class="pill-chip">{{ question.category }}</span>
+                        <span class="pill-chip">{{ question.difficulty_label }}</span>
+                        {% if selected_level != "All" %}
+                            <span class="pill-chip">Selected Level: {{ selected_level }}</span>
+                        {% endif %}
+                        <span class="pill-chip">Attempted: {{ attempted_count }}</span>
+                        <span class="pill-chip">Skipped: {{ skipped_count }}</span>
+                    </div>
+                </div>
+                <div class="timer-badge" id="timerDisplay">{{ timer_seconds }}s</div>
+            </div>
+
+            <div class="progress mb-2" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ progress }}">
+                <div class="progress-bar" id="progressFill" data-progress="{{ progress }}"></div>
+            </div>
+            <p class="small text-muted mb-4">Progress is based on attempted questions.</p>
+
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <button class="btn btn-soft" id="speakQuestion" type="button">Read Question Aloud</button>
+            </div>
+
+            <form method="post" id="questionForm">
+                {% if question.is_mcq %}
+                    <div class="mb-3">
+                        <label class="form-label">Choose One Option</label>
+                        <div class="mcq-options">
+                            {% for option in question.options %}
+                                <label class="mcq-option" for="option_{{ loop.index }}">
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        id="option_{{ loop.index }}"
+                                        name="selected_option"
+                                        value="{{ option }}"
+                                        {% if selected_answer == option %}checked{% endif %}
+                                    >
+                                    <span>{{ option }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                        <p class="text-muted mt-2 mb-0">Blank answer is treated as False in final result.</p>
+                    </div>
+                {% else %}
+                    <div class="mb-3">
+                        <label class="form-label" for="answerBox">Your Answer</label>
+                        <textarea class="form-control" id="answerBox" name="answer" rows="8" placeholder="Type your answer here...">{{ selected_answer }}</textarea>
+                    </div>
+                {% endif %}
+                <input type="hidden" name="time_taken" id="timeTaken" value="0">
+                <div class="d-grid d-md-flex gap-2 flex-wrap">
+                    <button class="btn btn-soft btn-lg" type="submit" formaction="{{ url_for('interview.previous_question') }}" formmethod="post">Previous Skipped</button>
+                    <button class="btn btn-soft btn-lg" type="submit" formaction="{{ url_for('interview.next_question') }}" formmethod="post">Next / Skip</button>
+                    <button class="btn btn-outline-secondary btn-lg" type="submit" formaction="{{ url_for('interview.jump_skipped') }}" formmethod="post">Jump First Skipped</button>
+                    <button class="btn btn-brand btn-lg" type="submit" formaction="{{ url_for('interview.submit_answer') }}" formmethod="post">Submit Final Result</button>
+                    <a class="btn btn-outline-danger btn-lg" href="{{ url_for('interview.setup') }}">Restart Round</a>
+                </div>
+            </form>
+
+            <div class="glass-inline p-3 mt-4">
+                <h6 class="mb-2">Question Tracker</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for answered in attempt_flags %}
+                        <span class="pill-chip {% if answered %}skill-ok{% else %}skill-miss{% endif %}">
+                            Q{{ loop.index }} {% if answered %}done{% else %}skip{% endif %}
+                        </span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script id="interview-question-data" type="application/json">
+{
+    "timerSeconds": {{ timer_seconds | int | tojson }},
+    "prompt": {{ question.prompt | tojson }},
+    "nextUrl": {{ url_for('interview.next_question') | tojson }}
+}
+</script>
+<script>
+(() => {
+    const timerDisplay = document.getElementById("timerDisplay");
+    const form = document.getElementById("questionForm");
+    const timeTakenInput = document.getElementById("timeTaken");
+    const speakButton = document.getElementById("speakQuestion");
+    const progressFill = document.getElementById("progressFill");
+    const dataElement = document.getElementById("interview-question-data");
+
+    const config = dataElement ? JSON.parse(dataElement.textContent) : {};
+
+    if (progressFill) {
+        const progress = Number(progressFill.dataset.progress || 0);
+        progressFill.style.width = `${Math.max(0, Math.min(100, progress))}%`;
+    }
+
+    if (speakButton) {
+        speakButton.addEventListener("click", () => {
+            if (!window.speechSynthesis) {
+                alert("Text-to-speech is not supported in this browser.");
+                return;
+            }
+
+            const text = String(config.prompt || "");
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.95;
+            utterance.pitch = 1;
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(utterance);
+        });
+    }
+
+    const totalSeconds = Number(config.timerSeconds || 90);
+    let remainingSeconds = totalSeconds;
+
+    const updateTimer = () => {
+        timerDisplay.textContent = `${remainingSeconds}s`;
+        timerDisplay.classList.toggle("is-danger", remainingSeconds <= 15);
+    };
+
+    updateTimer();
+
+    const timerId = setInterval(() => {
+        remainingSeconds -= 1;
+
+        if (remainingSeconds <= 0) {
+            clearInterval(timerId);
+            remainingSeconds = 0;
+            updateTimer();
+            timeTakenInput.value = totalSeconds;
+            form.action = String(config.nextUrl || "");
+            form.submit();
+            return;
+        }
+
+        updateTimer();
+    }, 1000);
+
+    form.addEventListener("submit", () => {
+        const spent = totalSeconds - remainingSeconds;
+        timeTakenInput.value = spent < 0 ? 0 : spent;
+        clearInterval(timerId);
+    });
+})();
+</script>
+{% endblock %}

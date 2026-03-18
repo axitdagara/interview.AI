@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8 reveal">
+        <div class="glass-panel">
+            <h2 class="mb-2">Interview Setup</h2>
+            <p class="text-muted mb-4">Customize your round and simulate real interview pressure.</p>
+
+            <form method="post" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label" for="question_source">Question Source</label>
+                    <select class="form-select" id="question_source" name="question_source">
+                        <option value="bank" {% if default_source == 'bank' %}selected{% endif %}>Question Bank</option>
+                        <option value="ai" {% if default_source == 'ai' %}selected{% endif %}>AI Live (Grok)</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label" for="category">Question Category</label>
+                    <select class="form-select" id="category" name="category">
+                        <option value="All">All Categories</option>
+                        {% for category in categories %}
+                            <option value="{{ category }}">{{ category }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label" for="difficulty_level">Difficulty Level</label>
+                    <select class="form-select" id="difficulty_level" name="difficulty_level">
+                        {% for level in difficulty_levels %}
+                            <option value="{{ level }}">{{ level }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label" for="question_count">Number of Questions</label>
+                    <input class="form-control" type="number" id="question_count" name="question_count" min="1" max="20" value="20">
+                    <p class="small text-muted mb-0 mt-1" id="availabilityHint">Available unique questions: --</p>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="glass-inline p-3 h-100">
+                        <h6 class="mb-1">Interview Type</h6>
+                        <p class="mb-0 text-muted" id="modeHint">MCQ-based adaptive round from your saved question bank.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 ai-only d-none">
+                    <label class="form-label" for="custom_category">Custom Category (AI Mode)</label>
+                    <input class="form-control" type="text" id="custom_category" name="custom_category" placeholder="Example: Data Science or Java Backend">
+                </div>
+
+                <div class="col-md-6 ai-only d-none">
+                    <label class="form-label" for="role_context">Role Context (AI Mode)</label>
+                    <input class="form-control" type="text" id="role_context" name="role_context" placeholder="Example: Backend Developer Intern">
+                </div>
+
+                <div class="col-12 ai-only d-none">
+                    <label class="form-label" for="focus_topics">Focus Topics (AI Mode)</label>
+                    <input class="form-control" type="text" id="focus_topics" name="focus_topics" placeholder="Example: REST APIs, DBMS, Caching, OOP">
+                    <p class="small text-muted mb-0 mt-1">AI mode uses Grok API and generates fresh questions for this round.</p>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label" for="timerRange">Timer per Question</label>
+                    <div class="timer-input d-flex align-items-center gap-3">
+                        <input class="form-range" type="range" id="timerRange" name="timer_seconds" min="30" max="300" step="15" value="90">
+                        <span class="badge rounded-pill text-bg-light border" id="timerValue">90 sec</span>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="glass-inline p-3 mb-3">
+                        <h6 class="mb-2">Round Features Enabled</h6>
+                        <ul class="mb-0 list-inline">
+                            <li class="list-inline-item me-3">Timer-based simulation</li>
+                            <li class="list-inline-item me-3">Category-wise MCQ selection</li>
+                            <li class="list-inline-item me-3">Easy, Medium, Hard filtering</li>
+                            <li class="list-inline-item">Optional live AI generation (Grok)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-12 d-grid d-md-flex gap-2">
+                    <button class="btn btn-brand btn-lg" type="submit">Start Interview</button>
+                    <a class="btn btn-soft btn-lg" href="{{ url_for('dashboard.dashboard') }}">Back to Dashboard</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script id="availability-data" type="application/json">{{ availability_map | tojson }}</script>
+<script>
+(() => {
+    const sourceInput = document.getElementById("question_source");
+    const categoryInput = document.getElementById("category");
+    const levelInput = document.getElementById("difficulty_level");
+    const countInput = document.getElementById("question_count");
+    const hint = document.getElementById("availabilityHint");
+    const modeHint = document.getElementById("modeHint");
+    const aiOnlyFields = document.querySelectorAll(".ai-only");
+    const availabilityDataNode = document.getElementById("availability-data");
+
+    if (!sourceInput || !categoryInput || !levelInput || !countInput || !hint || !modeHint || !availabilityDataNode) {
+        return;
+    }
+
+    const availability = JSON.parse(availabilityDataNode.textContent || "{}");
+
+    const isAiMode = () => sourceInput.value === "ai";
+
+    const updateMode = () => {
+        const ai = isAiMode();
+        aiOnlyFields.forEach((node) => {
+            node.classList.toggle("d-none", !ai);
+        });
+
+        if (ai) {
+            modeHint.textContent = "Live AI mode: Grok will generate fresh questions based on your selection.";
+            hint.textContent = "AI mode: requested question count will be generated by Grok.";
+
+            if (categoryInput.value === "All" && categoryInput.options.length > 1) {
+                categoryInput.selectedIndex = 1;
+            }
+
+            if (levelInput.value === "All") {
+                levelInput.value = "Medium";
+            }
+            return;
+        }
+
+        modeHint.textContent = "MCQ-based adaptive round from your saved question bank.";
+        updateAvailability();
+    };
+
+    const updateAvailability = () => {
+        if (isAiMode()) {
+            return;
+        }
+
+        const category = categoryInput.value || "All";
+        const level = levelInput.value || "All";
+
+        const byCategory = availability[category] || {};
+        const uniqueCount = Number(byCategory[level] || 0);
+
+        hint.textContent = `Available unique questions: ${uniqueCount}`;
+
+        const current = Number(countInput.value || 1);
+        if (uniqueCount > 0 && current > uniqueCount) {
+            countInput.value = String(uniqueCount);
+        }
+    };
+
+    sourceInput.addEventListener("change", updateMode);
+    categoryInput.addEventListener("change", updateAvailability);
+    levelInput.addEventListener("change", updateAvailability);
+    updateMode();
+})();
+</script>
+{% endblock %}

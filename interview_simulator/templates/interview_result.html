@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="reveal">
+    <div class="glass-panel mb-4">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-7">
+                <span class="kicker">Interview Completed</span>
+                <h2 class="mb-1">Overall Score: {{ interview_session.average_score }}%</h2>
+                <p class="mb-0">Performance Band: <strong>{{ score_band }}</strong></p>
+            </div>
+            <div class="col-md-5 text-md-end d-flex flex-wrap justify-content-md-end gap-2">
+                <a class="btn btn-brand" href="{{ url_for('interview.export_csv', session_id=interview_session.id) }}">Download CSV Report</a>
+                <a class="btn btn-soft" href="{{ url_for('interview.setup') }}">Try Another Round</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="reveal">
+    <div class="glass-panel table-wrap">
+        <h3 class="mb-3">Question-Wise Feedback</h3>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Question</th>
+                        <th>Level</th>
+                        <th>Your Answer</th>
+                        <th>Correct Option</th>
+                        <th>Outcome</th>
+                        <th style="width: 90px;">Score</th>
+                        <th>Feedback</th>
+                        <th style="width: 120px;">Time (s)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in responses %}
+                        <tr>
+                            <td>{{ row.question }}</td>
+                            <td><span class="pill-chip">{{ row.difficulty }}</span></td>
+                            <td>{{ row.answer }}</td>
+                            <td>{{ row.correct_option or '-' }}</td>
+                            <td>
+                                {% if row.status == 'True' %}
+                                    <span class="text-success"><strong>True</strong></span>
+                                {% else %}
+                                    <span class="text-danger"><strong>False</strong></span>
+                                {% endif %}
+                            </td>
+                            <td><span class="score-pill">{{ row.score }}%</span></td>
+                            <td>{{ row.feedback }}</td>
+                            <td>{{ row.time_taken }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

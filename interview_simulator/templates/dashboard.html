@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="row g-3 mb-4 reveal">
+    <div class="col-md-4">
+        <div class="metric-card h-100">
+            <p class="mini-label">Average Score</p>
+            <h3>{{ avg_score }}%</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="metric-card h-100">
+            <p class="mini-label">Best Score</p>
+            <h3>{{ best_score }}%</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="metric-card h-100">
+            <p class="mini-label">Weak Category</p>
+            <h3>{{ weak_category }}</h3>
+        </div>
+    </div>
+</section>
+
+<section class="row g-4">
+    <div class="col-lg-7 reveal">
+        <div class="glass-panel chart-panel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Score Trend</h4>
+                <span class="mono-tag">Last 8 interviews</span>
+            </div>
+            <div class="chart-canvas-wrap">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5 reveal">
+        <div class="glass-panel chart-panel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Category Performance</h4>
+                <span class="mono-tag">Average</span>
+            </div>
+            <div class="chart-canvas-wrap">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="row g-4 mt-1">
+    <div class="col-lg-6 reveal">
+        <div class="glass-panel h-100">
+            <h4 class="mb-3">Needs Attention</h4>
+            {% if weak_responses %}
+                <ul class="list-unstyled mb-0">
+                    {% for item in weak_responses %}
+                        <li class="weak-item">
+                            <div>
+                                <strong>{{ item.question.prompt }}</strong>
+                                <p class="mb-0 text-muted">{{ item.feedback }}</p>
+                            </div>
+                            <span class="score-pill">{{ item.score }}%</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="mb-0 text-success">No low-scoring responses found yet. Keep it up.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-6 reveal">
+        <div class="glass-panel h-100">
+            <h4 class="mb-3">Recent Resume Matches</h4>
+            {% if recent_resumes %}
+                <ul class="list-unstyled mb-0">
+                    {% for item in recent_resumes %}
+                        <li class="weak-item">
+                            <div>
+                                <strong>{{ item.role }}</strong>
+                                <p class="mb-0 text-muted">{{ item.filename }}</p>
+                            </div>
+                            <span class="score-pill">{{ item.match_score }}%</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="mb-0">No resume analyses yet. Try the analyzer to benchmark role fit.</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<section class="mt-4 reveal">
+    <div class="glass-panel table-wrap">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">Recent Interview Sessions</h4>
+            <a href="{{ url_for('dashboard.history') }}" class="btn btn-soft btn-sm">View Full History</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Level</th>
+                        <th>Questions</th>
+                        <th>Score</th>
+                        <th>Duration</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session_item in sessions %}
+                        <tr>
+                            <td>{{ session_item.start_time.strftime('%d %b %Y') if session_item.start_time else '-' }}</td>
+                            <td>{{ session_item.category }}</td>
+                            <td>{{ session_item.difficulty_level or 'All' }}</td>
+                            <td>{{ session_item.total_questions }}</td>
+                            <td><span class="score-pill">{{ session_item.average_score }}%</span></td>
+                            <td>{{ session_item.duration_seconds or 0 }} sec</td>
+                            <td>
+                                <a href="{{ url_for('interview.result', session_id=session_item.id) }}" class="btn btn-sm btn-soft">View</a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">No sessions yet. Start your first interview round.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script id="trend-labels-data" type="application/json">{{ timeline_labels | tojson }}</script>
+<script id="trend-scores-data" type="application/json">{{ timeline_scores | tojson }}</script>
+<script id="category-labels-data" type="application/json">{{ category_labels | tojson }}</script>
+<script id="category-scores-data" type="application/json">{{ category_scores | tojson }}</script>
+<script>
+(() => {
+    const parseData = (id) => {
+        const node = document.getElementById(id);
+        return node ? JSON.parse(node.textContent) : [];
+    };
+
+    const trendLabels = parseData("trend-labels-data");
+    const trendValues = parseData("trend-scores-data");
+    const categoryLabels = parseData("category-labels-data");
+    const categoryValues = parseData("category-scores-data");
+
+    const trendCanvas = document.getElementById("trendChart");
+    if (trendCanvas) {
+        const existingTrendChart = Chart.getChart(trendCanvas);
+        if (existingTrendChart) {
+            existingTrendChart.destroy();
+        }
+
+        new Chart(trendCanvas, {
+            type: "line",
+            data: {
+                labels: trendLabels,
+                datasets: [{
+                    label: "Score %",
+                    data: trendValues,
+                    borderColor: "#0f766e",
+                    backgroundColor: "rgba(15, 118, 110, 0.18)",
+                    tension: 0.35,
+                    fill: true,
+                    pointRadius: 4,
+                    pointBackgroundColor: "#f59e0b"
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                resizeDelay: 120,
+                scales: {
+                    y: { suggestedMin: 0, suggestedMax: 100 }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    const categoryCanvas = document.getElementById("categoryChart");
+    if (categoryCanvas) {
+        const existingCategoryChart = Chart.getChart(categoryCanvas);
+        if (existingCategoryChart) {
+            existingCategoryChart.destroy();
+        }
+
+        new Chart(categoryCanvas, {
+            type: "bar",
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    data: categoryValues,
+                    backgroundColor: ["#0f766e", "#f59e0b", "#f97316", "#14b8a6", "#f43f5e"],
+                    borderRadius: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                resizeDelay: 120,
+                scales: {
+                    y: { suggestedMin: 0, suggestedMax: 100 }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+})();
+</script>
+{% endblock %}

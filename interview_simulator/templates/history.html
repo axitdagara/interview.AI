@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="reveal">
+    <div class="glass-panel table-wrap">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="mb-0">Interview History</h2>
+            <a class="btn btn-soft" href="{{ url_for('interview.setup') }}">Start New Interview</a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Category</th>
+                        <th>Level</th>
+                        <th>Questions</th>
+                        <th>Average Score</th>
+                        <th>Duration</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in sessions %}
+                        <tr>
+                            <td>{{ item.start_time.strftime('%d %b %Y %I:%M %p') if item.start_time else '-' }}</td>
+                            <td>{{ item.category }}</td>
+                            <td>{{ item.difficulty_level or 'All' }}</td>
+                            <td>{{ item.total_questions }}</td>
+                            <td><span class="score-pill">{{ item.average_score }}%</span></td>
+                            <td>{{ item.duration_seconds or 0 }} sec</td>
+                            <td>
+                                <a class="btn btn-sm btn-soft" href="{{ url_for('interview.result', session_id=item.id) }}">Details</a>
+                                <a class="btn btn-sm btn-brand" href="{{ url_for('interview.export_csv', session_id=item.id) }}">CSV</a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">No attempts found yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-section reveal">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-7">
+            <span class="kicker">AI + NLP + Real-Time Feedback</span>
+            <h1 class="display-title">Practice Smarter Interviews, One Response at a Time</h1>
+            <p class="hero-copy">
+                Build confidence with a realistic interview simulator that scores your answers using TF-IDF and cosine similarity,
+                highlights weak areas, and tracks growth across categories.
+            </p>
+            <div class="d-flex flex-wrap gap-2 mt-4">
+                {% if current_user.is_authenticated %}
+                    <a class="btn btn-brand btn-lg" href="{{ url_for('interview.setup') }}">Start Interview</a>
+                    <a class="btn btn-soft btn-lg" href="{{ url_for('dashboard.dashboard') }}">View Dashboard</a>
+                {% else %}
+                    <a class="btn btn-brand btn-lg" href="{{ url_for('auth.register') }}">Get Started Free</a>
+                    <a class="btn btn-soft btn-lg" href="{{ url_for('auth.login') }}">I Already Have an Account</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="glass-panel stat-panel reveal">
+                <h3 class="mb-3">What You Get</h3>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="mini-stat">
+                            <p class="mini-label">Questions</p>
+                            <h4>{{ total_questions }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="mini-stat">
+                            <p class="mini-label">Categories</p>
+                            <h4>{{ total_categories }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="mini-stat">
+                            <p class="mini-label">Coverage</p>
+                            <p class="mb-0">HR, Technical, Aptitude, and Behavioral rounds with timer-based mode and voice input.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mt-5">
+    <div class="row g-4">
+        <div class="col-md-6 col-xl-3 reveal">
+            <div class="feature-card h-100">
+                <h5>Smart Evaluation</h5>
+                <p>TF-IDF and cosine similarity score every answer instantly.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 reveal">
+            <div class="feature-card h-100">
+                <h5>Voice Interview</h5>
+                <p>Use browser speech-to-text for hands-free answer drafting.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 reveal">
+            <div class="feature-card h-100">
+                <h5>Resume Analyzer</h5>
+                <p>Upload PDF resume and match skills against a target role.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 reveal">
+            <div class="feature-card h-100">
+                <h5>Performance Insights</h5>
+                <p>Track trends, best scores, weak categories, and attempt history.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mt-5 reveal">
+    <div class="glass-panel">
+        <h3 class="mb-3">Question Categories Included</h3>
+        <div class="d-flex flex-wrap gap-2">
+            {% for category in categories %}
+                <span class="pill-chip">{{ category }}</span>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
