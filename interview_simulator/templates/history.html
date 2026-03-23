@@ -1,11 +1,113 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section class="reveal">
-    <div class="glass-panel table-wrap">
+<section class="overview-banner reveal">
+    <div class="panel banner-panel">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3">
+            <div>
+                <span class="kicker">Session Archive</span>
+                <h2 class="mt-2 mb-1">Interview History</h2>
+                <p class="mb-0 text-muted">Review every attempt, compare scores, and export detailed reports.</p>
+            </div>
+            <a class="btn btn-brand" href="{{ url_for('interview.setup') }}">Start New Interview</a>
+        </div>
+    </div>
+</section>
+
+<section class="reveal mt-4">
+    <div class="panel filter-panel">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+            <h4 class="mb-0">Search And Filter</h4>
+            <a class="btn btn-soft btn-sm" href="{{ export_url }}">Export Filtered CSV</a>
+        </div>
+
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label" for="q">Keyword</label>
+                <input id="q" class="form-control" name="q" type="text" placeholder="Category keyword" value="{{ filters.keyword }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="category">Category</label>
+                <select id="category" class="form-select" name="category">
+                    <option value="All" {% if filters.category == 'All' %}selected{% endif %}>All</option>
+                    {% for category in history_categories %}
+                        <option value="{{ category }}" {% if filters.category == category %}selected{% endif %}>{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="difficulty">Difficulty</label>
+                <select id="difficulty" class="form-select" name="difficulty">
+                    {% for level in ['All', 'Easy', 'Medium', 'Hard'] %}
+                        <option value="{{ level }}" {% if filters.difficulty == level %}selected{% endif %}>{{ level }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="min_score">Min Score</label>
+                <input id="min_score" class="form-control" name="min_score" type="number" min="0" max="100" step="1" value="{{ filters.min_score_raw }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="sort">Sort By</label>
+                <select id="sort" class="form-select" name="sort">
+                    <option value="recent" {% if filters.sort == 'recent' %}selected{% endif %}>Most Recent</option>
+                    <option value="score_desc" {% if filters.sort == 'score_desc' %}selected{% endif %}>Score High to Low</option>
+                    <option value="score_asc" {% if filters.sort == 'score_asc' %}selected{% endif %}>Score Low to High</option>
+                    <option value="duration_desc" {% if filters.sort == 'duration_desc' %}selected{% endif %}>Duration High to Low</option>
+                    <option value="duration_asc" {% if filters.sort == 'duration_asc' %}selected{% endif %}>Duration Low to High</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="start_date">Start Date</label>
+                <input id="start_date" class="form-control" name="start_date" type="date" value="{{ filters.start_date }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="end_date">End Date</label>
+                <input id="end_date" class="form-control" name="end_date" type="date" value="{{ filters.end_date }}">
+            </div>
+            <div class="col-md-6 d-grid d-md-flex gap-2">
+                <button class="btn btn-brand" type="submit">Apply Filters</button>
+                <a class="btn btn-soft" href="{{ url_for('dashboard.history') }}">Reset</a>
+            </div>
+            <div class="col-12">
+                <p class="small text-muted mb-0">Date format supported: YYYY-MM-DD (picker) and DD-MM-YYYY.</p>
+            </div>
+        </form>
+    </div>
+</section>
+
+<section class="row g-3 mt-1 reveal">
+    <div class="col-md-6 col-xl-3">
+        <article class="panel metric-plate h-100">
+            <p class="metric-label">Filtered Sessions</p>
+            <h3>{{ history_summary.session_count }}</h3>
+        </article>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <article class="panel metric-plate h-100">
+            <p class="metric-label">Average Score</p>
+            <h3>{{ history_summary.avg_score }}%</h3>
+        </article>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <article class="panel metric-plate h-100">
+            <p class="metric-label">Best Score</p>
+            <h3>{{ history_summary.best_score }}%</h3>
+        </article>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <article class="panel metric-plate h-100">
+            <p class="metric-label">Avg Duration</p>
+            <h3>{{ history_summary.avg_duration }} sec</h3>
+        </article>
+    </div>
+</section>
+
+<section class="reveal mt-4">
+    <div class="panel table-panel">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="mb-0">Interview History</h2>
-            <a class="btn btn-soft" href="{{ url_for('interview.setup') }}">Start New Interview</a>
+            <h3 class="mb-0">All Sessions</h3>
+            <span class="mono-tag">{{ sessions | length }} total</span>
         </div>
 
         <div class="table-responsive">
@@ -23,21 +125,34 @@
                 </thead>
                 <tbody>
                     {% for item in sessions %}
+                        {% set score_value = item.average_score | float %}
                         <tr>
                             <td>{{ item.start_time.strftime('%d %b %Y %I:%M %p') if item.start_time else '-' }}</td>
                             <td>{{ item.category }}</td>
                             <td>{{ item.difficulty_level or 'All' }}</td>
                             <td>{{ item.total_questions }}</td>
-                            <td><span class="score-pill">{{ item.average_score }}%</span></td>
-                            <td>{{ item.duration_seconds or 0 }} sec</td>
                             <td>
+                                <span class="score-pill {% if score_value < 40 %}score-low{% elif score_value >= 70 %}score-high{% else %}score-mid{% endif %}">
+                                    {{ item.average_score }}%
+                                </span>
+                            </td>
+                            <td>{{ item.duration_seconds or 0 }} sec</td>
+                            <td class="d-flex flex-wrap gap-2">
                                 <a class="btn btn-sm btn-soft" href="{{ url_for('interview.result', session_id=item.id) }}">Details</a>
                                 <a class="btn btn-sm btn-brand" href="{{ url_for('interview.export_csv', session_id=item.id) }}">CSV</a>
                             </td>
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="7" class="text-center py-4">No attempts found yet.</td>
+                            <td colspan="7" class="text-center py-4">
+                                {% if has_active_filters and total_sessions_count > 0 %}
+                                    No sessions matched your current filters. Try broader filters or <a href="{{ url_for('dashboard.history') }}">Reset</a>.
+                                {% elif total_sessions_count == 0 %}
+                                    No attempts found yet.
+                                {% else %}
+                                    No sessions available for this view.
+                                {% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>

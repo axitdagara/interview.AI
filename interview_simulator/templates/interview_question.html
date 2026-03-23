@@ -1,85 +1,92 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row justify-content-center g-4">
-    <div class="col-xl-9 reveal">
-        <div class="glass-panel">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-                <div>
-                    <span class="kicker">Question {{ question_number }} of {{ total_questions }}</span>
-                    <h3 class="mb-0 mt-1">{{ question.prompt }}</h3>
-                    <div class="d-flex flex-wrap gap-2 mt-2">
-                        <span class="pill-chip">{{ question.category }}</span>
-                        <span class="pill-chip">{{ question.difficulty_label }}</span>
-                        {% if selected_level != "All" %}
-                            <span class="pill-chip">Selected Level: {{ selected_level }}</span>
-                        {% endif %}
-                        <span class="pill-chip">Attempted: {{ attempted_count }}</span>
-                        <span class="pill-chip">Skipped: {{ skipped_count }}</span>
-                    </div>
-                </div>
-                <div class="timer-badge" id="timerDisplay">{{ timer_seconds }}s</div>
-            </div>
-
-            <div class="progress mb-2" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ progress }}">
-                <div class="progress-bar" id="progressFill" data-progress="{{ progress }}"></div>
-            </div>
-            <p class="small text-muted mb-4">Progress is based on attempted questions.</p>
-
-            <div class="d-flex flex-wrap gap-2 mb-3">
-                <button class="btn btn-soft" id="speakQuestion" type="button">Read Question Aloud</button>
-            </div>
-
-            <form method="post" id="questionForm">
-                {% if question.is_mcq %}
-                    <div class="mb-3">
-                        <label class="form-label">Choose One Option</label>
-                        <div class="mcq-options">
-                            {% for option in question.options %}
-                                <label class="mcq-option" for="option_{{ loop.index }}">
-                                    <input
-                                        class="form-check-input"
-                                        type="radio"
-                                        id="option_{{ loop.index }}"
-                                        name="selected_option"
-                                        value="{{ option }}"
-                                        {% if selected_answer == option %}checked{% endif %}
-                                    >
-                                    <span>{{ option }}</span>
-                                </label>
-                            {% endfor %}
+<section class="question-stage">
+    <div class="row justify-content-center g-4">
+        <div class="col-xl-10 reveal focus-target">
+            <div class="panel question-panel">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+                    <div>
+                        <span class="kicker">Question {{ question_number }} of {{ total_questions }}</span>
+                        <h3 class="mt-2 mb-2">{{ question.prompt }}</h3>
+                        <div class="chip-row">
+                            <span class="status-chip">{{ question.category }}</span>
+                            <span class="status-chip">{{ question.difficulty_label }}</span>
+                            <span class="status-chip">Mode: {{ practice_mode|title }}</span>
+                            {% if selected_level != "All" %}
+                                <span class="status-chip">Selected Level: {{ selected_level }}</span>
+                            {% endif %}
+                            <span class="status-chip">Attempted: {{ attempted_count }}</span>
+                            <span class="status-chip">Skipped: {{ skipped_count }}</span>
                         </div>
-                        <p class="text-muted mt-2 mb-0">Blank answer is treated as False in final result.</p>
                     </div>
-                {% else %}
-                    <div class="mb-3">
-                        <label class="form-label" for="answerBox">Your Answer</label>
-                        <textarea class="form-control" id="answerBox" name="answer" rows="8" placeholder="Type your answer here...">{{ selected_answer }}</textarea>
-                    </div>
-                {% endif %}
-                <input type="hidden" name="time_taken" id="timeTaken" value="0">
-                <div class="d-grid d-md-flex gap-2 flex-wrap">
-                    <button class="btn btn-soft btn-lg" type="submit" formaction="{{ url_for('interview.previous_question') }}" formmethod="post">Previous Skipped</button>
-                    <button class="btn btn-soft btn-lg" type="submit" formaction="{{ url_for('interview.next_question') }}" formmethod="post">Next / Skip</button>
-                    <button class="btn btn-outline-secondary btn-lg" type="submit" formaction="{{ url_for('interview.jump_skipped') }}" formmethod="post">Jump First Skipped</button>
-                    <button class="btn btn-brand btn-lg" type="submit" formaction="{{ url_for('interview.submit_answer') }}" formmethod="post">Submit Final Result</button>
-                    <a class="btn btn-outline-danger btn-lg" href="{{ url_for('interview.setup') }}">Restart Round</a>
+                    <div class="timer-badge" id="timerDisplay">{{ timer_seconds }}s</div>
                 </div>
-            </form>
 
-            <div class="glass-inline p-3 mt-4">
-                <h6 class="mb-2">Question Tracker</h6>
-                <div class="d-flex flex-wrap gap-2">
-                    {% for answered in attempt_flags %}
-                        <span class="pill-chip {% if answered %}skill-ok{% else %}skill-miss{% endif %}">
-                            Q{{ loop.index }} {% if answered %}done{% else %}skip{% endif %}
-                        </span>
-                    {% endfor %}
+                <div class="progress mb-2" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ progress }}">
+                    <div class="progress-bar" id="progressFill" data-progress="{{ progress }}"></div>
+                </div>
+                <p class="small text-muted mb-4">Progress reflects how many questions have been attempted.</p>
+
+                <div class="d-flex flex-wrap gap-2 mb-4 align-items-center">
+                    <button class="btn btn-soft" id="speakQuestion" type="button">Read Question Aloud</button>
+                    <button class="btn btn-soft" id="toggleFocusMode" type="button">Focus Mode</button>
+                    <span class="mono-tag">Shortcuts: 1-4 option, N next, P previous, F focus</span>
+                </div>
+
+                <form method="post" id="questionForm">
+                    {% if question.is_mcq %}
+                        <div class="mb-4">
+                            <label class="form-label">Choose One Option</label>
+                            <div class="mcq-options">
+                                {% for option in question.options %}
+                                    <label class="mcq-option" for="option_{{ loop.index }}">
+                                        <input
+                                            class="form-check-input"
+                                            type="radio"
+                                            id="option_{{ loop.index }}"
+                                            name="selected_option"
+                                            value="{{ option }}"
+                                            {% if selected_answer == option %}checked{% endif %}
+                                        >
+                                        <span>{{ option }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                            <p class="text-muted mt-2 mb-0">Leaving an option blank is treated as incorrect on final submission.</p>
+                        </div>
+                    {% else %}
+                        <div class="mb-4">
+                            <label class="form-label" for="answerBox">Your Answer</label>
+                            <textarea class="form-control" id="answerBox" name="answer" rows="8" placeholder="Type your answer here...">{{ selected_answer }}</textarea>
+                        </div>
+                    {% endif %}
+
+                    <input type="hidden" name="time_taken" id="timeTaken" value="0">
+
+                    <div class="d-grid d-md-flex gap-2 flex-wrap">
+                        <button class="btn btn-soft btn-lg" type="submit" formaction="{{ url_for('interview.previous_question') }}" formmethod="post">Previous Skipped</button>
+                        <button class="btn btn-soft btn-lg" type="submit" formaction="{{ url_for('interview.next_question') }}" formmethod="post">Next / Skip</button>
+                        <button class="btn btn-outline-secondary btn-lg" type="submit" formaction="{{ url_for('interview.jump_skipped') }}" formmethod="post">Jump First Skipped</button>
+                        <button class="btn btn-brand btn-lg" type="submit" formaction="{{ url_for('interview.submit_answer') }}" formmethod="post">Submit Final Result</button>
+                        <a class="btn btn-outline-danger btn-lg" href="{{ url_for('interview.setup') }}">Restart Round</a>
+                    </div>
+                </form>
+
+                <div class="mini-panel mt-4">
+                    <h6 class="mb-2">Question Tracker</h6>
+                    <div class="chip-row">
+                        {% for answered in attempt_flags %}
+                            <span class="status-chip {% if answered %}skill-ok{% else %}skill-miss{% endif %}">
+                                Q{{ loop.index }} {% if answered %}done{% else %}skip{% endif %}
+                            </span>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}
 
 {% block scripts %}
@@ -87,7 +94,10 @@
 {
     "timerSeconds": {{ timer_seconds | int | tojson }},
     "prompt": {{ question.prompt | tojson }},
-    "nextUrl": {{ url_for('interview.next_question') | tojson }}
+    "nextUrl": {{ url_for('interview.next_question') | tojson }},
+    "previousUrl": {{ url_for('interview.previous_question') | tojson }},
+    "submitUrl": {{ url_for('interview.submit_answer') | tojson }},
+    "isMcq": {{ question.is_mcq | tojson }}
 }
 </script>
 <script>
@@ -96,6 +106,7 @@
     const form = document.getElementById("questionForm");
     const timeTakenInput = document.getElementById("timeTaken");
     const speakButton = document.getElementById("speakQuestion");
+    const focusButton = document.getElementById("toggleFocusMode");
     const progressFill = document.getElementById("progressFill");
     const dataElement = document.getElementById("interview-question-data");
 
@@ -121,6 +132,69 @@
             window.speechSynthesis.speak(utterance);
         });
     }
+
+    const toggleFocusMode = () => {
+        document.body.classList.toggle("interview-focus-mode");
+        if (!focusButton) {
+            return;
+        }
+
+        const enabled = document.body.classList.contains("interview-focus-mode");
+        focusButton.textContent = enabled ? "Exit Focus Mode" : "Focus Mode";
+    };
+
+    if (focusButton) {
+        focusButton.addEventListener("click", toggleFocusMode);
+    }
+
+    const submitTo = (targetUrl) => {
+        if (!targetUrl) {
+            return;
+        }
+        form.action = targetUrl;
+        form.method = "post";
+        form.submit();
+    };
+
+    document.addEventListener("keydown", (event) => {
+        const active = document.activeElement;
+        const isTypingTarget = active && (
+            active.tagName === "TEXTAREA"
+            || (active.tagName === "INPUT" && active.type !== "radio")
+        );
+
+        if (event.key.toLowerCase() === "f" && !event.altKey && !event.ctrlKey && !event.metaKey) {
+            event.preventDefault();
+            toggleFocusMode();
+            return;
+        }
+
+        if (isTypingTarget) {
+            return;
+        }
+
+        const isMcq = Boolean(config.isMcq);
+        if (isMcq && /^[1-9]$/.test(event.key)) {
+            const selectedIndex = Number(event.key);
+            const optionInput = document.getElementById(`option_${selectedIndex}`);
+            if (optionInput) {
+                optionInput.checked = true;
+                optionInput.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+            return;
+        }
+
+        if (event.key.toLowerCase() === "n") {
+            event.preventDefault();
+            submitTo(String(config.nextUrl || ""));
+            return;
+        }
+
+        if (event.key.toLowerCase() === "p") {
+            event.preventDefault();
+            submitTo(String(config.previousUrl || ""));
+        }
+    });
 
     const totalSeconds = Number(config.timerSeconds || 90);
     let remainingSeconds = totalSeconds;

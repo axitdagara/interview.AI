@@ -1,34 +1,60 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-10 col-lg-6 reveal">
-        <div class="glass-panel auth-card">
-            <h2 class="mb-2">Create Your Account</h2>
-            <p class="text-muted mb-4">Save interview history, track progress, and unlock advanced tools.</p>
-            <form method="post" novalidate>
-                <div class="mb-3">
-                    <label class="form-label" for="name">Full Name</label>
-                    <input class="form-control" type="text" id="name" name="name" required>
+<section class="auth-layout reveal">
+    <div class="row g-4 align-items-stretch">
+        <div class="col-lg-7">
+            <div class="panel auth-panel h-100">
+                <span class="kicker">Create Account</span>
+                <h2 class="mt-2 mb-2">Start Your Interview Training Hub</h2>
+                <p class="text-muted mb-4">Track every round, analyze weak spots, and improve with guided feedback.</p>
+
+                <form method="post" novalidate>
+                    <div class="mb-3">
+                        <label class="form-label" for="name">Full Name</label>
+                        <input class="form-control" type="text" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="email">Email Address</label>
+                        <input class="form-control" type="email" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="password">Password</label>
+                        <input class="form-control" type="password" id="password" name="password" minlength="6" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label" for="confirm_password">Confirm Password</label>
+                        <input class="form-control" type="password" id="confirm_password" name="confirm_password" minlength="6" required>
+                    </div>
+                    <div class="d-grid">
+                        <button class="btn btn-brand btn-lg" type="submit">Create Account</button>
+                    </div>
+                </form>
+
+                <p class="mt-3 mb-0">Already registered? <a href="{{ url_for('auth.login') }}">Sign in here</a>.</p>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="panel auth-showcase h-100">
+                <h3>What You Unlock</h3>
+                <p class="mb-4">A guided prep ecosystem with measurable outcomes, not random question browsing.</p>
+                <div class="benefit-stack">
+                    <article>
+                        <h6>Score Tracking</h6>
+                        <p>Monitor growth through timeline trends and category-level analytics.</p>
+                    </article>
+                    <article>
+                        <h6>Focused Practice</h6>
+                        <p>Pick round presets and iterate quickly on your weakest topics.</p>
+                    </article>
+                    <article>
+                        <h6>Resume Intelligence</h6>
+                        <p>Use AI recommendations to align your profile with target job roles.</p>
+                    </article>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label" for="email">Email Address</label>
-                    <input class="form-control" type="email" id="email" name="email" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label" for="password">Password</label>
-                    <input class="form-control" type="password" id="password" name="password" minlength="6" required>
-                </div>
-                <div class="mb-4">
-                    <label class="form-label" for="confirm_password">Confirm Password</label>
-                    <input class="form-control" type="password" id="confirm_password" name="confirm_password" minlength="6" required>
-                </div>
-                <div class="d-grid">
-                    <button class="btn btn-brand btn-lg" type="submit">Create Account</button>
-                </div>
-            </form>
-            <p class="mt-3 mb-0">Already registered? <a href="{{ url_for('auth.login') }}">Sign in here</a>.</p>
+            </div>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}

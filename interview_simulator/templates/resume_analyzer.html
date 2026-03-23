@@ -1,20 +1,25 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section class="row g-4">
-    <div class="col-lg-6 reveal">
-        <div class="glass-panel h-100">
-            <h2 class="mb-2">Resume Analyzer</h2>
-            <p class="text-muted mb-4">Upload a PDF resume to extract skills and check role compatibility score.</p>
+<section class="row g-4 align-items-stretch">
+    <div class="col-lg-5 reveal">
+        <div class="panel h-100">
+            <span class="kicker">Resume Intelligence</span>
+            <h2 class="mt-2 mb-2">Resume Analyzer</h2>
+            <p class="text-muted mb-4">Upload your PDF and receive AI-powered role fit, strengths, and focused improvements.</p>
 
             <form method="post" enctype="multipart/form-data" class="row g-3">
                 <div class="col-12">
                     <label class="form-label" for="role">Target Role</label>
                     <select class="form-select" id="role" name="role">
                         {% for role in roles %}
-                            <option value="{{ role }}">{{ role }}</option>
+                            <option value="{{ role }}" {% if result and result.role == role %}selected{% endif %}>{{ role }}</option>
                         {% endfor %}
                     </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="job_description">Job Description (Optional)</label>
+                    <textarea class="form-control" id="job_description" name="job_description" rows="5" placeholder="Paste JD to generate hiring-alignment score and gap recommendations.">{{ result.job_description if result else '' }}</textarea>
                 </div>
                 <div class="col-12">
                     <label class="form-label" for="resume">Resume PDF</label>
@@ -25,66 +30,153 @@
                 </div>
             </form>
 
-            <hr>
-            <h5 class="mb-3">Recent Analyses</h5>
-            {% if recent_profiles %}
-                <ul class="list-unstyled mb-0">
-                    {% for item in recent_profiles %}
-                        <li class="weak-item">
-                            <div>
-                                <strong>{{ item.role }}</strong>
-                                <p class="mb-0 text-muted">{{ item.filename }}</p>
-                            </div>
-                            <span class="score-pill">{{ item.match_score }}%</span>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p class="mb-0">No previous analyses yet.</p>
-            {% endif %}
+            <div class="mini-panel mt-4">
+                <h5 class="mb-3">Recent Analyses</h5>
+                {% if recent_profiles %}
+                    <ul class="feed-list mb-0">
+                        {% for item in recent_profiles %}
+                            {% set score_value = item.match_score | float %}
+                            <li class="feed-row">
+                                <div>
+                                    <strong>{{ item.role }}</strong>
+                                    <p class="mb-0 text-muted">{{ item.filename }}</p>
+                                </div>
+                                <span class="score-pill {% if score_value < 40 %}score-low{% elif score_value >= 70 %}score-high{% else %}score-mid{% endif %}">{{ item.match_score }}%</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="mb-0">No previous analyses yet.</p>
+                {% endif %}
+            </div>
         </div>
     </div>
 
-    <div class="col-lg-6 reveal">
-        <div class="glass-panel h-100">
+    <div class="col-lg-7 reveal">
+        <div class="panel h-100">
             <h3 class="mb-3">Analysis Result</h3>
+
             {% if result %}
-                <div class="metric-card mb-3">
-                    <p class="mini-label">Role Match Score</p>
-                    <h2>{{ result.match_score }}%</h2>
-                    <p class="mb-0 text-muted">Resume: {{ result.filename }} | Words: {{ result.word_count }}</p>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <article class="mini-panel h-100">
+                            <p class="metric-label">AI Resume Score</p>
+                            <h2 class="mb-1">{{ result.overall_score }}%</h2>
+                            <p class="mb-0 text-muted">{{ result.filename }}</p>
+                        </article>
+                    </div>
+                    <div class="col-md-6">
+                        <article class="mini-panel h-100">
+                            <p class="metric-label">Resume Facts</p>
+                            <p class="mb-1"><strong>Role Fit:</strong> {{ result.role_fit }}</p>
+                            <p class="mb-1"><strong>Experience:</strong> {{ result.experience_level }}</p>
+                            <p class="mb-0"><strong>Words:</strong> {{ result.word_count }}</p>
+                        </article>
+                    </div>
                 </div>
 
-                <h5 class="mb-2">Detected Skills</h5>
-                <div class="d-flex flex-wrap gap-2 mb-3">
-                    {% if result.skills %}
-                        {% for skill in result.skills %}
-                            <span class="pill-chip">{{ skill }}</span>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <article class="mini-panel h-100">
+                            <p class="metric-label">JD Alignment Score</p>
+                            <h2 class="mb-1">{{ result.jd_alignment_score }}%</h2>
+                            <p class="mb-0 text-muted">Compares resume against provided job description.</p>
+                        </article>
+                    </div>
+                    <div class="col-md-6">
+                        <article class="mini-panel h-100">
+                            <p class="metric-label">Recruiter Highlights</p>
+                            <ul class="mb-0">
+                                {% for point in result.recruiter_highlights %}
+                                    <li>{{ point }}</li>
+                                {% else %}
+                                    <li>No recruiter highlights generated yet.</li>
+                                {% endfor %}
+                            </ul>
+                        </article>
+                    </div>
+                </div>
+
+                <article class="mini-panel mb-3">
+                    <h5 class="mb-2">AI Summary</h5>
+                    <p class="mb-0">{{ result.summary or "No summary generated by AI." }}</p>
+                </article>
+
+                <article class="mini-panel mb-3">
+                    <h5 class="mb-2">Detected Skills</h5>
+                    <div class="chip-row">
+                        {% if result.detected_skills %}
+                            {% for skill in result.detected_skills %}
+                                <span class="status-chip">{{ skill }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <p class="mb-0">No explicit skills were detected by AI.</p>
+                        {% endif %}
+                    </div>
+                </article>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <article class="mini-panel h-100">
+                            <h5 class="mb-2">Strengths</h5>
+                            <ul class="mb-0">
+                                {% for point in result.strengths %}
+                                    <li>{{ point }}</li>
+                                {% else %}
+                                    <li>No strengths listed by AI.</li>
+                                {% endfor %}
+                            </ul>
+                        </article>
+                    </div>
+                    <div class="col-md-6">
+                        <article class="mini-panel h-100">
+                            <h5 class="mb-2">Improvement Areas</h5>
+                            <ul class="mb-0">
+                                {% for point in result.improvement_areas %}
+                                    <li>{{ point }}</li>
+                                {% else %}
+                                    <li>No improvement areas listed by AI.</li>
+                                {% endfor %}
+                            </ul>
+                        </article>
+                    </div>
+                </div>
+
+                <article class="mini-panel mb-3">
+                    <h5 class="mb-2">Recommended Skills To Add</h5>
+                    <div class="chip-row">
+                        {% for skill in result.recommended_skills %}
+                            <span class="status-chip skill-miss">{{ skill }}</span>
+                        {% else %}
+                            <p class="mb-0">No additional skills suggested by AI.</p>
                         {% endfor %}
-                    {% else %}
-                        <p class="mb-0">No known skills detected in the selected resume.</p>
-                    {% endif %}
-                </div>
+                    </div>
+                </article>
 
-                <h5 class="mb-2">Matched Skills</h5>
-                <div class="d-flex flex-wrap gap-2 mb-3">
-                    {% for skill in result.matched_skills %}
-                        <span class="pill-chip skill-ok">{{ skill }}</span>
-                    {% else %}
-                        <p class="mb-0">No direct role match found.</p>
-                    {% endfor %}
-                </div>
+                <article class="mini-panel mb-3">
+                    <h5 class="mb-2">JD Gap Summary</h5>
+                    <p class="mb-2">{{ result.jd_gap_summary or "Add a job description to receive hiring-gap summary." }}</p>
+                    <ul class="mb-0">
+                        {% for item in result.jd_recommendations %}
+                            <li>{{ item }}</li>
+                        {% else %}
+                            <li>No specific JD actions generated.</li>
+                        {% endfor %}
+                    </ul>
+                </article>
 
-                <h5 class="mb-2">Missing Skills</h5>
-                <div class="d-flex flex-wrap gap-2">
-                    {% for skill in result.missing_skills %}
-                        <span class="pill-chip skill-miss">{{ skill }}</span>
-                    {% else %}
-                        <p class="mb-0 text-success">Great fit. No key skill gaps detected.</p>
-                    {% endfor %}
-                </div>
+                <article class="mini-panel">
+                    <h5 class="mb-2">ATS Tips</h5>
+                    <ul class="mb-0">
+                        {% for tip in result.ats_tips %}
+                            <li>{{ tip }}</li>
+                        {% else %}
+                            <li>No ATS tips provided by AI.</li>
+                        {% endfor %}
+                    </ul>
+                </article>
             {% else %}
-                <p class="mb-0">Upload a resume to view extracted skills, role fit percentage, and targeted improvement suggestions.</p>
+                <p class="mb-0">Upload a resume to view AI role-fit score, summary, strengths, and tailored improvement suggestions.</p>
             {% endif %}
         </div>
     </div>

@@ -23,6 +23,8 @@ DIFFICULTY_TO_VALUE = {
     "Hard": 3,
 }
 
+PRACTICE_MODES = {"balanced", "accuracy", "speed", "executive"}
+
 EXTRA_CATEGORIES = [
     "Data Structures",
     "Algorithms",
@@ -90,7 +92,7 @@ def _get_groq_runtime_config():
     model = (
         (current_app.config.get("GROQ_MODEL", "") or "").strip()
         or (current_app.config.get("GROK_MODEL", "") or "").strip()
-        or "grok-4-1-fast-non-reasoning"
+        or "llama-3.3-70b-versatile"
     )
 
     # Auto-correct common mismatch: Groq key with xAI endpoint.
@@ -100,7 +102,7 @@ def _get_groq_runtime_config():
     return {
         "api_key": api_key,
         "base_url": base_url or "https://api.groq.com/openai/v1",
-        "model": model or "grok-4-1-fast-non-reasoning",
+        "model": model or "llama-3.3-70b-versatile",
     }
 
 
@@ -126,6 +128,11 @@ def _generate_questions_with_grok(*, category, difficulty_level, count, role_con
 def _normalize_level(level_value):
     candidate = (level_value or "All").strip().title()
     return candidate if candidate in DIFFICULTY_TO_VALUE else "All"
+
+
+def _normalize_practice_mode(mode_value):
+    candidate = (mode_value or "balanced").strip().lower()
+    return candidate if candidate in PRACTICE_MODES else "balanced"
 
 
 def _build_availability_map():
@@ -329,6 +336,7 @@ def setup():
         custom_category = request.form.get("custom_category", "").strip()
         role_context = request.form.get("role_context", "").strip()
         focus_topics = request.form.get("focus_topics", "").strip()
+        practice_mode = _normalize_practice_mode(request.form.get("practice_mode", "balanced"))
 
         category = custom_category or selected_category
         difficulty_level = _normalize_level(request.form.get("difficulty_level", "All"))
@@ -345,6 +353,23 @@ def setup():
 
         question_count = max(1, min(question_count, 20))
         timer_seconds = max(30, min(timer_seconds, 300))
+
+        if practice_mode == "accuracy":
+            timer_seconds = max(timer_seconds, 120)
+            question_count = min(question_count, 12)
+            if difficulty_level == "All":
+                difficulty_level = "Medium"
+        elif practice_mode == "speed":
+            timer_seconds = min(timer_seconds, 60)
+            question_count = max(question_count, 10)
+            if difficulty_level == "All":
+                difficulty_level = "Medium"
+        elif practice_mode == "executive":
+            timer_seconds = min(timer_seconds, 75)
+            question_count = max(question_count, 12)
+            if difficulty_level == "All":
+                difficulty_level = "Hard"
+
         if question_source == "ai":
             if not category or category == "All":
                 flash("For AI mode, select a specific category or enter a custom category.", "warning")
@@ -424,6 +449,7 @@ def setup():
             "index": 0,
             "timer_seconds": timer_seconds,
             "difficulty_level": difficulty_level,
+            "practice_mode": practice_mode,
             "answers": {},
             "time_taken": {},
             "question_source": question_source,
@@ -437,6 +463,7 @@ def setup():
         difficulty_levels=difficulty_levels,
         availability_map=availability_map,
         default_source="bank",
+        default_practice_mode="balanced",
     )
 
 
@@ -490,6 +517,7 @@ def question():
         skipped_count=skipped_count,
         attempt_flags=attempt_flags,
         question_source=state.get("question_source", "bank"),
+        practice_mode=state.get("practice_mode", "balanced"),
     )
 
 

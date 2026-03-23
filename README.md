@@ -6,13 +6,13 @@ A complete final-year project built with Flask, SQLite, and NLP scoring.
 
 - User authentication (register, login, logout)
 - Interview categories: HR, Technical, Aptitude, Behavioral
-- Real AI question generator (Groq API) with custom categories
+- Live AI question generation from Interview Setup (Groq API)
 - Timer-based interview simulation
 - AI evaluation using TF-IDF + cosine similarity
 - Smart feedback with missing keywords
 - Voice input for answers (browser speech-to-text)
 - Performance dashboard with charts
-- Resume analyzer (PDF upload, skill extraction, role matching)
+- Resume analyzer (PDF upload, AI role-fit scoring and improvement tips)
 - Session history and CSV report export
 
 ## Tech Stack
@@ -93,14 +93,14 @@ interview_simulator/
 
 ## Real AI Question Generation (Groq)
 
-Use the **AI Generator** page after login to create and save new MCQ questions using a real AI model.
+Use **Interview Setup** and select **Question Source = AI Live (Grok)** to generate fresh MCQ questions for each round.
 
 Set environment variables before running:
 
 ```powershell
 $env:AI_PROVIDER_DEFAULT="groq"
 $env:GROQ_API_KEY="your_groq_api_key"
-$env:GROQ_MODEL="grok-4-1-fast-non-reasoning"
+$env:GROQ_MODEL="llama-3.3-70b-versatile"
 $env:GROQ_API_BASE_URL="https://api.groq.com/openai/v1"
 ```
 

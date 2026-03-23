@@ -1,90 +1,134 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section class="hero-section reveal">
-    <div class="row align-items-center g-4">
+<section class="landing-hero reveal">
+    <div class="row g-4 align-items-stretch">
         <div class="col-lg-7">
-            <span class="kicker">AI + NLP + Real-Time Feedback</span>
-            <h1 class="display-title">Practice Smarter Interviews, One Response at a Time</h1>
-            <p class="hero-copy">
-                Build confidence with a realistic interview simulator that scores your answers using TF-IDF and cosine similarity,
-                highlights weak areas, and tracks growth across categories.
-            </p>
-            <div class="d-flex flex-wrap gap-2 mt-4">
-                {% if current_user.is_authenticated %}
-                    <a class="btn btn-brand btn-lg" href="{{ url_for('interview.setup') }}">Start Interview</a>
-                    <a class="btn btn-soft btn-lg" href="{{ url_for('dashboard.dashboard') }}">View Dashboard</a>
-                {% else %}
-                    <a class="btn btn-brand btn-lg" href="{{ url_for('auth.register') }}">Get Started Free</a>
-                    <a class="btn btn-soft btn-lg" href="{{ url_for('auth.login') }}">I Already Have an Account</a>
-                {% endif %}
+            <div class="panel hero-copy-block h-100">
+                <span class="kicker">The Interview Atelier</span>
+                <h1 class="headline-xl">Build Interview Reflexes, Not Just Notes.</h1>
+                <p class="lead-copy">
+                    Interview.AI turns practice into a polished training loop: timed rounds, instant scoring, and visible improvement paths.
+                    You prepare with intent, measure progress quickly, and walk into interviews with clarity.
+                </p>
+
+                <div class="chip-row mt-4">
+                    <span class="status-chip">Timed Simulation</span>
+                    <span class="status-chip">AI Resume Coaching</span>
+                    <span class="status-chip">Progress Analytics</span>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    {% if current_user.is_authenticated %}
+                        <a class="btn btn-brand btn-lg" href="{{ url_for('interview.setup') }}">Start Interview Round</a>
+                        <a class="btn btn-soft btn-lg" href="{{ url_for('dashboard.dashboard') }}">Open Dashboard</a>
+                    {% else %}
+                        <a class="btn btn-brand btn-lg" href="{{ url_for('auth.register') }}">Create Account</a>
+                        <a class="btn btn-soft btn-lg" href="{{ url_for('auth.login') }}">Sign In</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
+
         <div class="col-lg-5">
-            <div class="glass-panel stat-panel reveal">
-                <h3 class="mb-3">What You Get</h3>
-                <div class="row g-3">
-                    <div class="col-6">
-                        <div class="mini-stat">
-                            <p class="mini-label">Questions</p>
-                            <h4>{{ total_questions }}</h4>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="mini-stat">
-                            <p class="mini-label">Categories</p>
-                            <h4>{{ total_categories }}</h4>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <div class="mini-stat">
-                            <p class="mini-label">Coverage</p>
-                            <p class="mb-0">HR, Technical, Aptitude, and Behavioral rounds with timer-based mode and voice input.</p>
-                        </div>
-                    </div>
+            <div class="panel hero-stats h-100">
+                <h3 class="panel-title">Live Prep Snapshot</h3>
+                <div class="signal-grid mt-3">
+                    <article class="signal-card">
+                        <p class="signal-label">Question Bank</p>
+                        <p class="signal-value">{{ total_questions }}</p>
+                    </article>
+                    <article class="signal-card">
+                        <p class="signal-label">Categories</p>
+                        <p class="signal-value">{{ total_categories }}</p>
+                    </article>
+                    <article class="signal-card signal-wide">
+                        <p class="signal-label">Coverage</p>
+                        <p class="mb-0">Technical, aptitude, behavioral, and role-driven interview tracks with realistic constraints.</p>
+                    </article>
+                </div>
+
+                <h5 class="mt-4 mb-2">Featured Categories</h5>
+                <div class="category-cloud">
+                    {% for category in categories[:10] %}
+                        <span class="category-pill">{{ category }}</span>
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="mt-5">
-    <div class="row g-4">
-        <div class="col-md-6 col-xl-3 reveal">
-            <div class="feature-card h-100">
-                <h5>Smart Evaluation</h5>
-                <p>TF-IDF and cosine similarity score every answer instantly.</p>
-            </div>
+<section class="step-track reveal mt-5">
+    <div class="row g-3">
+        <div class="col-md-4">
+            <article class="step-item h-100">
+                <span class="step-number">01</span>
+                <h4>Configure The Round</h4>
+                <p>Pick category, level, timer, and count in under a minute.</p>
+            </article>
         </div>
-        <div class="col-md-6 col-xl-3 reveal">
-            <div class="feature-card h-100">
-                <h5>Voice Interview</h5>
-                <p>Use browser speech-to-text for hands-free answer drafting.</p>
-            </div>
+        <div class="col-md-4">
+            <article class="step-item h-100">
+                <span class="step-number">02</span>
+                <h4>Answer Under Pressure</h4>
+                <p>Navigate quickly with timer discipline and keyboard-first flow.</p>
+            </article>
         </div>
-        <div class="col-md-6 col-xl-3 reveal">
-            <div class="feature-card h-100">
-                <h5>Resume Analyzer</h5>
-                <p>Upload PDF resume and match skills against a target role.</p>
-            </div>
-        </div>
-        <div class="col-md-6 col-xl-3 reveal">
-            <div class="feature-card h-100">
-                <h5>Performance Insights</h5>
-                <p>Track trends, best scores, weak categories, and attempt history.</p>
-            </div>
+        <div class="col-md-4">
+            <article class="step-item h-100">
+                <span class="step-number">03</span>
+                <h4>Review And Upgrade</h4>
+                <p>Use session feedback, trend charts, and resume insights to improve.</p>
+            </article>
         </div>
     </div>
 </section>
 
-<section class="mt-5 reveal">
-    <div class="glass-panel">
-        <h3 class="mb-3">Question Categories Included</h3>
-        <div class="d-flex flex-wrap gap-2">
-            {% for category in categories %}
-                <span class="pill-chip">{{ category }}</span>
-            {% endfor %}
+<section class="feature-matrix reveal mt-5">
+    <div class="row g-3">
+        <div class="col-md-6 col-xl-3">
+            <article class="feature-tile h-100">
+                <p class="tile-index">01</p>
+                <h5>Answer Intelligence</h5>
+                <p>Scores are generated instantly so you can iterate faster per question.</p>
+            </article>
         </div>
+        <div class="col-md-6 col-xl-3">
+            <article class="feature-tile h-100">
+                <p class="tile-index">02</p>
+                <h5>Pressure Controls</h5>
+                <p>Timed rounds and skip navigation mirror realistic interview behavior.</p>
+            </article>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <article class="feature-tile h-100">
+                <p class="tile-index">03</p>
+                <h5>Resume Deep Dive</h5>
+                <p>AI role-fit scoring and improvement cues for direct resume alignment.</p>
+            </article>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <article class="feature-tile h-100">
+                <p class="tile-index">04</p>
+                <h5>Trend Observatory</h5>
+                <p>See momentum, weak topics, and recent sessions in one command center.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="cta-ribbon reveal mt-5">
+    <div class="panel cta-panel d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <p class="kicker mb-2">Ready To Level Up?</p>
+            <h3 class="mb-0">Make Your Next Interview Feel Familiar.</h3>
+        </div>
+        {% if current_user.is_authenticated %}
+            <a class="btn btn-brand" href="{{ url_for('interview.setup') }}">Start Practice</a>
+        {% else %}
+            <a class="btn btn-brand" href="{{ url_for('auth.register') }}">Get Started Free</a>
+        {% endif %}
     </div>
 </section>
 {% endblock %}

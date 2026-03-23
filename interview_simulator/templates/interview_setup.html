@@ -1,97 +1,150 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-xl-8 reveal">
-        <div class="glass-panel">
-            <h2 class="mb-2">Interview Setup</h2>
-            <p class="text-muted mb-4">Customize your round and simulate real interview pressure.</p>
+<section class="setup-page">
+    <div class="row g-4 align-items-stretch">
+        <div class="col-xl-8 reveal">
+            <div class="panel setup-panel h-100">
+                <span class="kicker">Round Composer</span>
+                <h2 class="mt-2 mb-2">Interview Setup</h2>
+                <p class="text-muted mb-4">Design your next practice round with timing, category, and difficulty controls.</p>
 
-            <form method="post" class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label" for="question_source">Question Source</label>
-                    <select class="form-select" id="question_source" name="question_source">
-                        <option value="bank" {% if default_source == 'bank' %}selected{% endif %}>Question Bank</option>
-                        <option value="ai" {% if default_source == 'ai' %}selected{% endif %}>AI Live (Grok)</option>
-                    </select>
-                </div>
-
-                <div class="col-md-4">
-                    <label class="form-label" for="category">Question Category</label>
-                    <select class="form-select" id="category" name="category">
-                        <option value="All">All Categories</option>
-                        {% for category in categories %}
-                            <option value="{{ category }}">{{ category }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="col-md-4">
-                    <label class="form-label" for="difficulty_level">Difficulty Level</label>
-                    <select class="form-select" id="difficulty_level" name="difficulty_level">
-                        {% for level in difficulty_levels %}
-                            <option value="{{ level }}">{{ level }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label" for="question_count">Number of Questions</label>
-                    <input class="form-control" type="number" id="question_count" name="question_count" min="1" max="20" value="20">
-                    <p class="small text-muted mb-0 mt-1" id="availabilityHint">Available unique questions: --</p>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="glass-inline p-3 h-100">
-                        <h6 class="mb-1">Interview Type</h6>
-                        <p class="mb-0 text-muted" id="modeHint">MCQ-based adaptive round from your saved question bank.</p>
+                <form method="post" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label" for="question_source">Question Source</label>
+                        <select class="form-select" id="question_source" name="question_source">
+                            <option value="bank" {% if default_source == 'bank' %}selected{% endif %}>Question Bank</option>
+                            <option value="ai" {% if default_source == 'ai' %}selected{% endif %}>AI Live (Grok)</option>
+                        </select>
                     </div>
-                </div>
 
-                <div class="col-md-6 ai-only d-none">
-                    <label class="form-label" for="custom_category">Custom Category (AI Mode)</label>
-                    <input class="form-control" type="text" id="custom_category" name="custom_category" placeholder="Example: Data Science or Java Backend">
-                </div>
-
-                <div class="col-md-6 ai-only d-none">
-                    <label class="form-label" for="role_context">Role Context (AI Mode)</label>
-                    <input class="form-control" type="text" id="role_context" name="role_context" placeholder="Example: Backend Developer Intern">
-                </div>
-
-                <div class="col-12 ai-only d-none">
-                    <label class="form-label" for="focus_topics">Focus Topics (AI Mode)</label>
-                    <input class="form-control" type="text" id="focus_topics" name="focus_topics" placeholder="Example: REST APIs, DBMS, Caching, OOP">
-                    <p class="small text-muted mb-0 mt-1">AI mode uses Grok API and generates fresh questions for this round.</p>
-                </div>
-
-                <div class="col-12">
-                    <label class="form-label" for="timerRange">Timer per Question</label>
-                    <div class="timer-input d-flex align-items-center gap-3">
-                        <input class="form-range" type="range" id="timerRange" name="timer_seconds" min="30" max="300" step="15" value="90">
-                        <span class="badge rounded-pill text-bg-light border" id="timerValue">90 sec</span>
+                    <div class="col-md-3">
+                        <label class="form-label" for="category">Question Category</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="All">All Categories</option>
+                            {% for category in categories %}
+                                <option value="{{ category }}">{{ category }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                </div>
 
-                <div class="col-12">
-                    <div class="glass-inline p-3 mb-3">
-                        <h6 class="mb-2">Round Features Enabled</h6>
-                        <ul class="mb-0 list-inline">
-                            <li class="list-inline-item me-3">Timer-based simulation</li>
-                            <li class="list-inline-item me-3">Category-wise MCQ selection</li>
-                            <li class="list-inline-item me-3">Easy, Medium, Hard filtering</li>
-                            <li class="list-inline-item">Optional live AI generation (Grok)</li>
-                        </ul>
+                    <div class="col-md-3">
+                        <label class="form-label" for="difficulty_level">Difficulty Level</label>
+                        <select class="form-select" id="difficulty_level" name="difficulty_level">
+                            {% for level in difficulty_levels %}
+                                <option value="{{ level }}">{{ level }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                </div>
 
-                <div class="col-12 d-grid d-md-flex gap-2">
-                    <button class="btn btn-brand btn-lg" type="submit">Start Interview</button>
-                    <a class="btn btn-soft btn-lg" href="{{ url_for('dashboard.dashboard') }}">Back to Dashboard</a>
-                </div>
-            </form>
+                    <div class="col-md-3">
+                        <label class="form-label" for="practice_mode">Practice Mode</label>
+                        <select class="form-select" id="practice_mode" name="practice_mode">
+                            <option value="balanced" {% if default_practice_mode == 'balanced' %}selected{% endif %}>Balanced</option>
+                            <option value="accuracy" {% if default_practice_mode == 'accuracy' %}selected{% endif %}>Accuracy First</option>
+                            <option value="speed" {% if default_practice_mode == 'speed' %}selected{% endif %}>Speed Drill</option>
+                            <option value="executive" {% if default_practice_mode == 'executive' %}selected{% endif %}>Executive Challenge</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label" for="question_count">Number of Questions</label>
+                        <input class="form-control" type="number" id="question_count" name="question_count" min="1" max="20" value="20">
+                        <p class="small text-muted mb-0 mt-1" id="availabilityHint">Available unique questions: --</p>
+                        <div class="d-flex flex-wrap gap-2 mt-2 setup-presets">
+                            <button class="btn preset-chip" type="button" data-count="5" data-timer="120">Quick 5</button>
+                            <button class="btn preset-chip" type="button" data-count="10" data-timer="90">Standard 10</button>
+                            <button class="btn preset-chip" type="button" data-count="15" data-timer="60">Challenge 15</button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <article class="mini-panel h-100 d-flex flex-column justify-content-center">
+                            <h6 class="mb-1">Round Intelligence</h6>
+                            <p class="mb-2 text-muted" id="modeHint">MCQ-based adaptive round from your saved question bank.</p>
+                            <p class="mb-2 text-muted" id="practiceModeHint">Balanced mode keeps timer and difficulty as selected.</p>
+                            <p class="metric-label mb-1">Estimated Round Duration</p>
+                            <p class="duration-estimate mb-0" id="roundEstimate">~ 30 min</p>
+                        </article>
+                    </div>
+
+                    <div class="col-md-6 ai-only d-none">
+                        <label class="form-label" for="custom_category">Custom Category (AI Mode)</label>
+                        <input class="form-control" type="text" id="custom_category" name="custom_category" placeholder="Example: Data Science or Java Backend">
+                    </div>
+
+                    <div class="col-md-6 ai-only d-none">
+                        <label class="form-label" for="role_context">Role Context (AI Mode)</label>
+                        <input class="form-control" type="text" id="role_context" name="role_context" placeholder="Example: Backend Developer Intern">
+                    </div>
+
+                    <div class="col-12 ai-only d-none">
+                        <label class="form-label" for="focus_topics">Focus Topics (AI Mode)</label>
+                        <input class="form-control" type="text" id="focus_topics" name="focus_topics" placeholder="Example: REST APIs, DBMS, Caching, OOP">
+                        <p class="small text-muted mb-0 mt-1">AI mode uses Grok API and generates fresh questions for this round.</p>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label" for="timerRange">Timer per Question</label>
+                        <div class="timer-input d-flex align-items-center gap-3">
+                            <input class="form-range" type="range" id="timerRange" name="timer_seconds" min="30" max="300" step="15" value="90">
+                            <span class="badge rounded-pill border" id="timerValue">90 sec</span>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <article class="mini-panel">
+                            <h6 class="mb-2">Round Features</h6>
+                            <ul class="feature-inline-list mb-0">
+                                <li>Timer-based simulation</li>
+                                <li>Category-aware MCQ filtering</li>
+                                <li>Easy, Medium, and Hard modes</li>
+                                <li>Quick presets with remembered preferences</li>
+                            </ul>
+                        </article>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="rememberSetup" checked>
+                            <label class="form-check-label" for="rememberSetup">Remember these setup preferences on this device</label>
+                        </div>
+                    </div>
+
+                    <div class="col-12 d-grid d-md-flex gap-2">
+                        <button class="btn btn-brand btn-lg" type="submit">Start Interview</button>
+                        <a class="btn btn-soft btn-lg" href="{{ url_for('dashboard.dashboard') }}">Back to Dashboard</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-xl-4 reveal">
+            <div class="panel setup-side h-100">
+                <h4>Round Strategy Tips</h4>
+                <p class="text-muted">Use this panel as a quick checklist before you begin each simulation.</p>
+
+                <article class="mini-panel mb-3">
+                    <p class="metric-label">Tip 1</p>
+                    <h6 class="mb-1">Start Specific</h6>
+                    <p class="mb-0">Pick one category and one level when targeting weak areas.</p>
+                </article>
+
+                <article class="mini-panel mb-3">
+                    <p class="metric-label">Tip 2</p>
+                    <h6 class="mb-1">Use Challenge Presets</h6>
+                    <p class="mb-0">Lower timers gradually to improve your response speed.</p>
+                </article>
+
+                <article class="mini-panel">
+                    <p class="metric-label">Tip 3</p>
+                    <h6 class="mb-1">Close The Loop</h6>
+                    <p class="mb-0">After each session, review dashboard insights before the next round.</p>
+                </article>
+            </div>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}
 
 {% block scripts %}
@@ -101,25 +154,111 @@
     const sourceInput = document.getElementById("question_source");
     const categoryInput = document.getElementById("category");
     const levelInput = document.getElementById("difficulty_level");
+    const practiceModeInput = document.getElementById("practice_mode");
     const countInput = document.getElementById("question_count");
+    const timerRange = document.getElementById("timerRange");
+    const timerValue = document.getElementById("timerValue");
+    const roundEstimate = document.getElementById("roundEstimate");
+    const rememberSetup = document.getElementById("rememberSetup");
+    const presetButtons = Array.from(document.querySelectorAll(".setup-presets .preset-chip"));
+    const customCategoryInput = document.getElementById("custom_category");
+    const roleContextInput = document.getElementById("role_context");
+    const focusTopicsInput = document.getElementById("focus_topics");
     const hint = document.getElementById("availabilityHint");
     const modeHint = document.getElementById("modeHint");
+    const practiceModeHint = document.getElementById("practiceModeHint");
     const aiOnlyFields = document.querySelectorAll(".ai-only");
     const availabilityDataNode = document.getElementById("availability-data");
+    const storageKey = "interview.setup.preferences.v1";
 
-    if (!sourceInput || !categoryInput || !levelInput || !countInput || !hint || !modeHint || !availabilityDataNode) {
+    if (!sourceInput || !categoryInput || !levelInput || !practiceModeInput || !countInput || !timerRange || !hint || !modeHint || !availabilityDataNode) {
         return;
     }
+    const practiceModeMessages = {
+        balanced: "Balanced mode keeps timer and difficulty as selected.",
+        accuracy: "Accuracy First mode extends timer and stabilizes difficulty for better correctness.",
+        speed: "Speed Drill mode compresses timer and increases round pace.",
+        executive: "Executive Challenge mode intensifies pressure with a senior-level rhythm.",
+    };
+
+    const applyPracticeModeDefaults = () => {
+        const mode = String(practiceModeInput.value || "balanced").toLowerCase();
+
+        if (mode === "accuracy") {
+            if (Number(timerRange.value) < 120) {
+                timerRange.value = "120";
+            }
+            if (Number(countInput.value) > 12) {
+                countInput.value = "12";
+            }
+            if (levelInput.value === "All") {
+                levelInput.value = "Medium";
+            }
+            return;
+        }
+
+        if (mode === "speed") {
+            if (Number(timerRange.value) > 60) {
+                timerRange.value = "60";
+            }
+            if (Number(countInput.value) < 10) {
+                countInput.value = "10";
+            }
+            if (levelInput.value === "All") {
+                levelInput.value = "Medium";
+            }
+            return;
+        }
+
+        if (mode === "executive") {
+            if (Number(timerRange.value) > 75) {
+                timerRange.value = "75";
+            }
+            if (Number(countInput.value) < 12) {
+                countInput.value = "12";
+            }
+            if (levelInput.value === "All") {
+                levelInput.value = "Hard";
+            }
+        }
+    };
+
 
     const availability = JSON.parse(availabilityDataNode.textContent || "{}");
 
     const isAiMode = () => sourceInput.value === "ai";
+
+    const formatDuration = (seconds) => {
+        const total = Math.max(0, Number(seconds) || 0);
+        const mins = Math.floor(total / 60);
+        const secs = total % 60;
+        return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+    };
+
+    const updateRoundEstimate = () => {
+        const count = Math.max(1, Number(countInput.value || 1));
+        const perQuestion = Math.max(30, Number(timerRange.value || 90));
+        const totalSeconds = count * perQuestion;
+
+        if (roundEstimate) {
+            roundEstimate.textContent = `~ ${formatDuration(totalSeconds)}`;
+        }
+
+        if (timerValue) {
+            timerValue.textContent = `${perQuestion} sec`;
+        }
+    };
 
     const updateMode = () => {
         const ai = isAiMode();
         aiOnlyFields.forEach((node) => {
             node.classList.toggle("d-none", !ai);
         });
+
+        if (practiceModeHint) {
+            const selectedMode = String(practiceModeInput.value || "balanced").toLowerCase();
+            practiceModeHint.textContent = practiceModeMessages[selectedMode] || practiceModeMessages.balanced;
+        }
 
         if (ai) {
             modeHint.textContent = "Live AI mode: Grok will generate fresh questions based on your selection.";
@@ -132,11 +271,14 @@
             if (levelInput.value === "All") {
                 levelInput.value = "Medium";
             }
+
+            updateRoundEstimate();
             return;
         }
 
         modeHint.textContent = "MCQ-based adaptive round from your saved question bank.";
         updateAvailability();
+        updateRoundEstimate();
     };
 
     const updateAvailability = () => {
@@ -156,12 +298,138 @@
         if (uniqueCount > 0 && current > uniqueCount) {
             countInput.value = String(uniqueCount);
         }
+
+        updateRoundEstimate();
     };
 
+    const savePreferences = () => {
+        if (!rememberSetup || !rememberSetup.checked) {
+            localStorage.removeItem(storageKey);
+            return;
+        }
+
+        const payload = {
+            source: sourceInput.value,
+            category: categoryInput.value,
+            level: levelInput.value,
+            practiceMode: practiceModeInput.value,
+            count: countInput.value,
+            timer: timerRange.value,
+            customCategory: customCategoryInput ? customCategoryInput.value : "",
+            roleContext: roleContextInput ? roleContextInput.value : "",
+            focusTopics: focusTopicsInput ? focusTopicsInput.value : "",
+        };
+
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(payload));
+        } catch (error) {
+            // Ignore storage failures (private mode, storage full, etc).
+        }
+    };
+
+    const restorePreferences = () => {
+        let payload;
+        try {
+            payload = JSON.parse(localStorage.getItem(storageKey) || "{}");
+        } catch (error) {
+            payload = {};
+        }
+
+        if (!payload || typeof payload !== "object") {
+            return;
+        }
+
+        if (payload.source === "bank" || payload.source === "ai") {
+            sourceInput.value = payload.source;
+        }
+
+        if (payload.category && Array.from(categoryInput.options).some((opt) => opt.value === payload.category)) {
+            categoryInput.value = payload.category;
+        }
+
+        if (payload.level && Array.from(levelInput.options).some((opt) => opt.value === payload.level)) {
+            levelInput.value = payload.level;
+        }
+
+        if (payload.practiceMode && Array.from(practiceModeInput.options).some((opt) => opt.value === payload.practiceMode)) {
+            practiceModeInput.value = payload.practiceMode;
+        }
+
+        if (payload.count) {
+            countInput.value = String(payload.count);
+        }
+
+        if (payload.timer) {
+            timerRange.value = String(payload.timer);
+        }
+
+        if (customCategoryInput && typeof payload.customCategory === "string") {
+            customCategoryInput.value = payload.customCategory;
+        }
+
+        if (roleContextInput && typeof payload.roleContext === "string") {
+            roleContextInput.value = payload.roleContext;
+        }
+
+        if (focusTopicsInput && typeof payload.focusTopics === "string") {
+            focusTopicsInput.value = payload.focusTopics;
+        }
+    };
+
+    presetButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            const count = Number(button.dataset.count || 10);
+            const timer = Number(button.dataset.timer || 90);
+
+            countInput.value = String(Math.max(1, Math.min(20, count)));
+            timerRange.value = String(Math.max(30, Math.min(300, timer)));
+
+            updateAvailability();
+            updateRoundEstimate();
+            savePreferences();
+        });
+    });
+
+    restorePreferences();
+
     sourceInput.addEventListener("change", updateMode);
+    practiceModeInput.addEventListener("change", () => {
+        applyPracticeModeDefaults();
+        updateMode();
+        updateAvailability();
+        updateRoundEstimate();
+        savePreferences();
+    });
     categoryInput.addEventListener("change", updateAvailability);
     levelInput.addEventListener("change", updateAvailability);
+    countInput.addEventListener("input", updateRoundEstimate);
+    timerRange.addEventListener("input", updateRoundEstimate);
+
+    [
+        sourceInput,
+        categoryInput,
+        levelInput,
+        practiceModeInput,
+        countInput,
+        timerRange,
+        customCategoryInput,
+        roleContextInput,
+        focusTopicsInput,
+    ].forEach((node) => {
+        if (!node) {
+            return;
+        }
+
+        node.addEventListener("change", savePreferences);
+        node.addEventListener("input", savePreferences);
+    });
+
+    if (rememberSetup) {
+        rememberSetup.addEventListener("change", savePreferences);
+    }
+
     updateMode();
+    updateRoundEstimate();
 })();
 </script>
 {% endblock %}

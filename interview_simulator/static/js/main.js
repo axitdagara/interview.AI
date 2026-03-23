@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     const nav = document.querySelector(".site-nav");
+    const navLinks = Array.from(document.querySelectorAll(".site-nav .nav-link"));
     const revealItems = Array.from(document.querySelectorAll(".reveal"));
 
     const syncNavShadow = () => {
@@ -11,6 +12,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     syncNavShadow();
     window.addEventListener("scroll", syncNavShadow, { passive: true });
+
+    if (navLinks.length > 0) {
+        const currentPath = (window.location.pathname || "/").replace(/\/+$/, "") || "/";
+
+        navLinks.forEach((link) => {
+            let linkPath = "/";
+            try {
+                linkPath = new URL(link.href, window.location.origin).pathname.replace(/\/+$/, "") || "/";
+            } catch (error) {
+                linkPath = "/";
+            }
+
+            if (currentPath === linkPath || (linkPath !== "/" && currentPath.startsWith(`${linkPath}/`))) {
+                link.classList.add("is-active");
+            }
+        });
+    }
 
     revealItems.forEach((item, index) => {
         const delay = Math.min(index * 0.06, 0.36);

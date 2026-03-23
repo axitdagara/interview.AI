@@ -22,7 +22,7 @@ class Config:
     ).strip()
     GROQ_MODEL = os.environ.get(
         "GROQ_MODEL",
-        os.environ.get("GROK_MODEL", "grok-4-1-fast-non-reasoning"),
+        os.environ.get("GROK_MODEL", "llama-3.3-70b-versatile"),
     ).strip()
 
     # Backward-compatible aliases used by existing code paths.
