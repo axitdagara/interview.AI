@@ -24,6 +24,7 @@ DIFFICULTY_TO_VALUE = {
 }
 
 PRACTICE_MODES = {"balanced", "accuracy", "speed", "executive"}
+MAX_ROUND_QUESTION_COUNT = 100
 
 EXTRA_CATEGORIES = [
     "Data Structures",
@@ -57,7 +58,10 @@ def _get_categories():
         .all()
     )
     db_categories = {row[0] for row in rows if row[0]}
-    return sorted(db_categories | set(EXTRA_CATEGORIES))
+    if db_categories:
+        return sorted(db_categories)
+
+    return sorted(EXTRA_CATEGORIES)
 
 
 def _persist_generated_questions(items):
@@ -384,12 +388,11 @@ def setup():
         except ValueError:
             timer_seconds = 90
 
-        question_count = max(1, min(question_count, 20))
+        question_count = max(1, min(question_count, MAX_ROUND_QUESTION_COUNT))
         timer_seconds = max(30, min(timer_seconds, 300))
 
         if practice_mode == "accuracy":
             timer_seconds = max(timer_seconds, 120)
-            question_count = min(question_count, 12)
             if difficulty_level == "All":
                 difficulty_level = "Medium"
         elif practice_mode == "speed":

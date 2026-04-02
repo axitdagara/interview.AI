@@ -74,6 +74,30 @@ def test_interview_question_page_shows_voice_bot_controls(client, login):
     assert b"AI Voice Bot" in question_response.data
 
 
+def test_interview_setup_supports_large_round_count(client, login):
+    login()
+
+    setup_response = client.post(
+        "/interview/setup",
+        data={
+            "question_source": "bank",
+            "category": "All",
+            "difficulty_level": "All",
+            "question_count": "50",
+            "timer_seconds": "90",
+            "practice_mode": "balanced",
+        },
+        follow_redirects=False,
+    )
+    assert setup_response.status_code == 302
+    assert "/interview/question" in setup_response.headers["Location"]
+
+    with client.session_transaction() as session_data:
+        state = session_data["interview_state"]
+
+    assert len(state["question_ids"]) == 50
+
+
 def test_dashboard_history_and_exports(client, login):
     login()
 

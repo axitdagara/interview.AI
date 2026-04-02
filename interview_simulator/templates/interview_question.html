@@ -56,7 +56,7 @@
                         <div class="mb-4">
                             <label class="form-label">Choose One Option</label>
                             <div class="mcq-options">
-                                {% for option in question.options %}
+                                {% for option in question_options %}
                                     <label class="mcq-option" for="option_{{ loop.index }}">
                                         <input
                                             class="form-check-input"

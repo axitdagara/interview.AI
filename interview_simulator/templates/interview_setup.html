@@ -49,12 +49,13 @@
 
                     <div class="col-md-6">
                         <label class="form-label" for="question_count">Number of Questions</label>
-                        <input class="form-control" type="number" id="question_count" name="question_count" min="1" max="20" value="20">
+                        <input class="form-control" type="number" id="question_count" name="question_count" min="1" max="100" value="20">
                         <p class="small text-muted mb-0 mt-1" id="availabilityHint">Available unique questions: --</p>
                         <div class="d-flex flex-wrap gap-2 mt-2 setup-presets">
                             <button class="btn preset-chip" type="button" data-count="5" data-timer="120">Quick 5</button>
-                            <button class="btn preset-chip" type="button" data-count="10" data-timer="90">Standard 10</button>
-                            <button class="btn preset-chip" type="button" data-count="15" data-timer="60">Challenge 15</button>
+                            <button class="btn preset-chip" type="button" data-count="25" data-timer="90">Standard 25</button>
+                            <button class="btn preset-chip" type="button" data-count="50" data-timer="75">Challenge 50</button>
+                            <button class="btn preset-chip" type="button" data-count="100" data-timer="60">Marathon 100</button>
                         </div>
                     </div>
 
@@ -204,9 +205,6 @@
         if (mode === "accuracy") {
             if (Number(timerRange.value) < 120) {
                 timerRange.value = "120";
-            }
-            if (Number(countInput.value) > 12) {
-                countInput.value = "12";
             }
             if (levelInput.value === "All") {
                 levelInput.value = "Medium";
@@ -398,7 +396,7 @@
             const count = Number(button.dataset.count || 10);
             const timer = Number(button.dataset.timer || 90);
 
-            countInput.value = String(Math.max(1, Math.min(20, count)));
+            countInput.value = String(Math.max(1, Math.min(100, count)));
             timerRange.value = String(Math.max(30, Math.min(300, timer)));
 
             updateAvailability();
@@ -419,7 +417,17 @@
     });
     categoryInput.addEventListener("change", updateAvailability);
     levelInput.addEventListener("change", updateAvailability);
-    countInput.addEventListener("input", updateRoundEstimate);
+    countInput.addEventListener("input", () => {
+        const current = Number(countInput.value || 1);
+        if (!Number.isFinite(current)) {
+            countInput.value = "1";
+        } else if (current < 1) {
+            countInput.value = "1";
+        } else if (current > 100) {
+            countInput.value = "100";
+        }
+        updateRoundEstimate();
+    });
     timerRange.addEventListener("input", updateRoundEstimate);
 
     [

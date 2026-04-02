@@ -4,7 +4,7 @@ from .extensions import db
 from .models import Question
 
 
-MIN_QUESTIONS_PER_CATEGORY = 200
+MIN_QUESTIONS_PER_CATEGORY = 500
 
 
 def _mcq(category, difficulty, prompt, ideal_answer, correct, option2, option3, option4):
