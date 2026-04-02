@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640" role="img" aria-labelledby="title desc">
+  <title id="title">Interview practice dashboard illustration</title>
+  <desc id="desc">Abstract interface cards showing interview metrics and progress.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e0ecff"/>
+      <stop offset="1" stop-color="#dafaf6"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4338ca"/>
+      <stop offset="1" stop-color="#0891b2"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="640" rx="28" fill="url(#bg)"/>
+  <g opacity="0.15">
+    <circle cx="140" cy="120" r="82" fill="#4338ca"/>
+    <circle cx="840" cy="86" r="60" fill="#0ea5e9"/>
+    <circle cx="810" cy="550" r="94" fill="#14b8a6"/>
+  </g>
+  <rect x="120" y="118" width="720" height="404" rx="24" fill="#ffffff" stroke="#cbd5e1"/>
+  <rect x="152" y="150" width="238" height="150" rx="16" fill="url(#card)"/>
+  <rect x="418" y="150" width="390" height="66" rx="14" fill="#eef2ff"/>
+  <rect x="418" y="234" width="390" height="66" rx="14" fill="#ecfeff"/>
+  <rect x="152" y="322" width="656" height="32" rx="11" fill="#f1f5f9"/>
+  <rect x="152" y="372" width="656" height="32" rx="11" fill="#f1f5f9"/>
+  <rect x="152" y="422" width="420" height="32" rx="11" fill="#f1f5f9"/>
+  <rect x="590" y="422" width="218" height="32" rx="11" fill="#e2e8f0"/>
+</svg>

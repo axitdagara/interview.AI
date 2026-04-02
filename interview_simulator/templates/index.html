@@ -32,6 +32,12 @@
 
         <div class="col-lg-5">
             <div class="panel hero-stats h-100">
+                <img
+                    class="hero-art"
+                    src="{{ url_for('static', filename='images/hero-illustration.svg') }}"
+                    alt="Interview dashboard illustration"
+                    loading="lazy"
+                >
                 <h3 class="panel-title">Live Prep Snapshot</h3>
                 <div class="signal-grid mt-3">
                     <article class="signal-card">
@@ -85,7 +91,64 @@
     </div>
 </section>
 
+<section class="image-hover-showcase reveal mt-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+        <div>
+            <span class="kicker">Category Visuals</span>
+            <h3 class="mb-0 mt-1">Hover To Preview Focus Tracks</h3>
+        </div>
+        <p class="text-muted mb-0">Each image maps to a specific interview practice lane.</p>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6 col-xl-3">
+            <article class="hover-image-card">
+                <img src="{{ url_for('static', filename='images/category-technical.svg') }}" alt="Technical interview track" loading="lazy">
+                <div class="hover-image-overlay">
+                    <h5>Technical</h5>
+                    <p>Practice APIs, Python, SQL, and core engineering reasoning.</p>
+                </div>
+            </article>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <article class="hover-image-card">
+                <img src="{{ url_for('static', filename='images/category-hr.svg') }}" alt="HR interview track" loading="lazy">
+                <div class="hover-image-overlay">
+                    <h5>HR</h5>
+                    <p>Train communication, motivation, strengths, and role-fit responses.</p>
+                </div>
+            </article>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <article class="hover-image-card">
+                <img src="{{ url_for('static', filename='images/category-aptitude.svg') }}" alt="Aptitude interview track" loading="lazy">
+                <div class="hover-image-overlay">
+                    <h5>Aptitude</h5>
+                    <p>Build speed with percentages, ratios, logic, and numeric patterns.</p>
+                </div>
+            </article>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <article class="hover-image-card">
+                <img src="{{ url_for('static', filename='images/category-behavioral.svg') }}" alt="Behavioral interview track" loading="lazy">
+                <div class="hover-image-overlay">
+                    <h5>Behavioral</h5>
+                    <p>Use STAR-based answers for teamwork, pressure, and leadership.</p>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
 <section class="feature-matrix reveal mt-5">
+    <div class="panel image-strip-panel mb-3">
+        <img
+            class="feature-strip-art"
+            src="{{ url_for('static', filename='images/features-strip.svg') }}"
+            alt="Visual summary of interview progress and features"
+            loading="lazy"
+        >
+    </div>
     <div class="row g-3">
         <div class="col-md-6 col-xl-3">
             <article class="feature-tile h-100">

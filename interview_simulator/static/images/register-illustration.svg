@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="560" viewBox="0 0 760 560" role="img" aria-labelledby="title desc">
+  <title id="title">Create account illustration</title>
+  <desc id="desc">Profile setup card with checklist and growth chart.</desc>
+  <defs>
+    <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f766e"/>
+      <stop offset="1" stop-color="#4338ca"/>
+    </linearGradient>
+  </defs>
+  <rect width="760" height="560" rx="24" fill="#f8fafc"/>
+  <circle cx="110" cy="120" r="58" fill="#cffafe"/>
+  <circle cx="650" cy="468" r="74" fill="#ddd6fe"/>
+  <rect x="128" y="98" width="504" height="360" rx="24" fill="#ffffff" stroke="#cbd5e1"/>
+  <circle cx="216" cy="186" r="42" fill="url(#g2)"/>
+  <rect x="278" y="158" width="280" height="22" rx="8" fill="#e2e8f0"/>
+  <rect x="278" y="194" width="220" height="22" rx="8" fill="#e2e8f0"/>
+  <rect x="180" y="262" width="398" height="20" rx="8" fill="#eef2ff"/>
+  <rect x="180" y="300" width="398" height="20" rx="8" fill="#eef2ff"/>
+  <rect x="180" y="338" width="284" height="20" rx="8" fill="#eef2ff"/>
+  <path d="M184 420h392" stroke="#cbd5e1" stroke-width="10" stroke-linecap="round"/>
+  <path d="M204 420l74-56 84 42 96-86 94 56" fill="none" stroke="#4338ca" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -35,8 +35,24 @@
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('interview.setup') }}">Interview</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('resume.analyzer') }}">Resume Analyzer</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard.history') }}">History</a></li>
+                        <li class="nav-item">
+                            <button class="btn btn-theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode" aria-pressed="false">
+                                <span id="themeToggleLabel">Dark Mode</span>
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <span class="profile-pill" title="{{ current_user.name }}">
+                                <span class="profile-avatar">{{ (current_user.name or 'U')[:1] | upper }}</span>
+                                <span class="profile-name">{{ current_user.name }}</span>
+                            </span>
+                        </li>
                         <li class="nav-item"><a class="btn btn-brand ms-lg-2" href="{{ url_for('auth.logout') }}">Logout</a></li>
                     {% else %}
+                        <li class="nav-item">
+                            <button class="btn btn-theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode" aria-pressed="false">
+                                <span id="themeToggleLabel">Dark Mode</span>
+                            </button>
+                        </li>
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
                         <li class="nav-item"><a class="btn btn-brand ms-lg-2" href="{{ url_for('auth.register') }}">Create Account</a></li>
                     {% endif %}

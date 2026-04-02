@@ -206,6 +206,7 @@ def analyze_resume_with_ai(*, api_key, api_base_url, model, resume_text, role, j
         "overall_score (number 0-100), role_fit (string), experience_level (string), summary (string), "
         "detected_skills (array of strings), strengths (array of strings), "
         "improvement_areas (array of strings), recommended_skills (array of strings), ats_tips (array of strings), "
+        "ats_accuracy_score (number 0-100), "
         "jd_alignment_score (number 0-100), jd_gap_summary (string), "
         "jd_recommendations (array of strings), recruiter_highlights (array of strings). "
         "Do not include markdown or explanation outside JSON. "
@@ -297,6 +298,9 @@ def analyze_resume_with_ai(*, api_key, api_base_url, model, resume_text, role, j
         "improvement_areas": _normalize_string_list(parsed.get("improvement_areas", []), max_items=8),
         "recommended_skills": _normalize_string_list(parsed.get("recommended_skills", []), max_items=10),
         "ats_tips": _normalize_string_list(parsed.get("ats_tips", []), max_items=8),
+        "ats_accuracy_score": _normalize_score(
+            parsed.get("ats_accuracy_score", parsed.get("overall_score", 0.0))
+        ),
         "jd_alignment_score": _normalize_score(
             parsed.get(
                 "jd_alignment_score",

@@ -1,7 +1,44 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const root = document.documentElement;
     const nav = document.querySelector(".site-nav");
     const navLinks = Array.from(document.querySelectorAll(".site-nav .nav-link"));
     const revealItems = Array.from(document.querySelectorAll(".reveal"));
+    const themeToggle = document.getElementById("themeToggle");
+    const themeToggleLabel = document.getElementById("themeToggleLabel");
+
+    const applyTheme = (theme) => {
+        const normalized = theme === "dark" ? "dark" : "light";
+        root.setAttribute("data-theme", normalized);
+
+        if (themeToggle) {
+            const pressed = normalized === "dark";
+            themeToggle.setAttribute("aria-pressed", String(pressed));
+        }
+
+        if (themeToggleLabel) {
+            themeToggleLabel.textContent = normalized === "dark" ? "Light Mode" : "Dark Mode";
+        }
+    };
+
+    const persistedTheme = localStorage.getItem("interview-ai-theme");
+    const preferredTheme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+
+    applyTheme(persistedTheme || preferredTheme);
+
+    if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+            const current = root.getAttribute("data-theme") === "dark" ? "dark" : "light";
+            const next = current === "dark" ? "light" : "dark";
+            applyTheme(next);
+            localStorage.setItem("interview-ai-theme", next);
+
+            if (document.getElementById("trendChart")) {
+                window.setTimeout(() => window.location.reload(), 50);
+            }
+        });
+    }
 
     const syncNavShadow = () => {
         if (!nav) {

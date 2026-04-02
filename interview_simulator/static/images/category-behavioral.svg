@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520" role="img" aria-labelledby="title desc">
+  <title id="title">Behavioral interview track</title>
+  <desc id="desc">STAR method board with progress steps.</desc>
+  <defs>
+    <linearGradient id="behbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef2ff"/>
+      <stop offset="1" stop-color="#dcfce7"/>
+    </linearGradient>
+  </defs>
+  <rect width="760" height="520" rx="24" fill="url(#behbg)"/>
+  <rect x="80" y="80" width="600" height="360" rx="22" fill="#ffffff" stroke="#cbd5e1"/>
+  <rect x="122" y="126" width="516" height="56" rx="14" fill="#e0e7ff"/>
+  <text x="380" y="162" text-anchor="middle" fill="#3730a3" font-size="34" font-family="Arial, sans-serif" font-weight="700">S T A R</text>
+  <rect x="122" y="214" width="516" height="40" rx="12" fill="#ecfccb"/>
+  <rect x="122" y="274" width="516" height="40" rx="12" fill="#dcfce7"/>
+  <rect x="122" y="334" width="320" height="40" rx="12" fill="#cffafe"/>
+  <circle cx="470" cy="354" r="14" fill="#22c55e"/>
+  <circle cx="516" cy="354" r="14" fill="#0ea5e9"/>
+  <circle cx="562" cy="354" r="14" fill="#6366f1"/>
+</svg>

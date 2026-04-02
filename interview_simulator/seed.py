@@ -4,6 +4,9 @@ from .extensions import db
 from .models import Question
 
 
+MIN_QUESTIONS_PER_CATEGORY = 200
+
+
 def _mcq(category, difficulty, prompt, ideal_answer, correct, option2, option3, option4):
     return {
         "category": category,
@@ -15,7 +18,7 @@ def _mcq(category, difficulty, prompt, ideal_answer, correct, option2, option3, 
     }
 
 
-HR_QUESTIONS = [
+HR_BASE_QUESTIONS = [
     _mcq("HR", 1, "What is the best structure for 'Tell me about yourself'?", "Use a short professional intro, skills, achievement, and role fit.", "Brief profile, skills, achievement, role fit", "Family details and hometown only", "Salary expectations first", "A long personal life story"),
     _mcq("HR", 1, "Best way to answer 'Why this company?'", "Connect company mission with your skills and growth goals.", "Align your strengths with company mission", "Say any company is fine", "Talk only about office location", "Ask interviewer to answer it for you"),
     _mcq("HR", 2, "As a fresher, how should you answer salary expectation?", "Show flexibility and openness to company standards.", "Be flexible and open to company standards", "Demand the highest package immediately", "Refuse to discuss salary", "Say salary does not matter at all"),
@@ -39,7 +42,7 @@ HR_QUESTIONS = [
 ]
 
 
-TECHNICAL_QUESTIONS = [
+TECHNICAL_BASE_QUESTIONS = [
     _mcq("Technical", 1, "Python is:", "Python is a high-level interpreted programming language.", "A high-level interpreted programming language", "A hardware design tool", "Only a database engine", "A browser extension format"),
     _mcq("Technical", 1, "List vs Tuple in Python:", "Lists are mutable, tuples are immutable.", "List is mutable, tuple is immutable", "Both are immutable", "Tuple is mutable, list immutable", "No difference"),
     _mcq("Technical", 2, "Which concept allows same method name with different behavior?", "Polymorphism enables same interface with different implementations.", "Polymorphism", "Encapsulation", "Compilation", "Serialization"),
@@ -63,7 +66,7 @@ TECHNICAL_QUESTIONS = [
 ]
 
 
-APTITUDE_QUESTIONS = [
+APTITUDE_BASE_QUESTIONS = [
     _mcq("Aptitude", 1, "Next number: 5, 10, 15, 20, ?", "Arithmetic progression +5.", "25", "30", "22", "24"),
     _mcq("Aptitude", 1, "If 20 percent of x is 40, x is:", "x = 40 / 0.2 = 200.", "200", "160", "180", "240"),
     _mcq("Aptitude", 1, "Average of 10, 20, 30 is:", "(10+20+30)/3 = 20.", "20", "15", "25", "30"),
@@ -87,7 +90,7 @@ APTITUDE_QUESTIONS = [
 ]
 
 
-BEHAVIORAL_QUESTIONS = [
+BEHAVIORAL_BASE_QUESTIONS = [
     _mcq("Behavioral", 1, "STAR stands for:", "Situation, Task, Action, Result.", "Situation, Task, Action, Result", "Skill, Talent, Aptitude, Result", "Start, Think, Answer, Review", "Speak, Track, Analyze, Report"),
     _mcq("Behavioral", 2, "If you miss a deadline, first step is:", "Own it early, communicate, and provide recovery plan.", "Inform stakeholders early with recovery plan", "Hide the delay", "Blame others", "Ignore and continue"),
     _mcq("Behavioral", 2, "When receiving critical feedback, best response:", "Accept calmly and ask for actionable improvement points.", "Listen, ask specifics, and improve", "Argue immediately", "Ignore feedback", "Complain publicly"),
@@ -109,6 +112,39 @@ BEHAVIORAL_QUESTIONS = [
     _mcq("Behavioral", 3, "If project scope changes suddenly, best response:", "Re-estimate, realign plan, and communicate impact.", "Re-scope and communicate timeline impact", "Continue old plan blindly", "Reject all changes immediately", "Pause project indefinitely"),
     _mcq("Behavioral", 1, "Confidence in interview is best shown by:", "Clarity, calm tone, and honest examples.", "Clear and honest responses with examples", "Interrupting interviewer", "Speaking loudly only", "Memorized robotic answers"),
 ]
+
+
+def _expand_category_questions(base_questions, min_count=MIN_QUESTIONS_PER_CATEGORY):
+    if len(base_questions) >= min_count:
+        return list(base_questions)
+
+    expanded = list(base_questions)
+    seed_size = len(base_questions)
+
+    for index in range(min_count - seed_size):
+        base_item = base_questions[index % seed_size]
+        cycle = (index // seed_size) + 1
+        variant_no = (index % seed_size) + 1
+
+        variant = dict(base_item)
+        variant["prompt"] = (
+            f"{base_item['prompt']} "
+            f"(Practice Variant {cycle:02d}-{variant_no:02d})"
+        )
+        variant["ideal_answer"] = (
+            f"{base_item['ideal_answer']} "
+            "Apply the same principle in this variation."
+        )
+        variant["options"] = list(base_item["options"])
+        expanded.append(variant)
+
+    return expanded
+
+
+HR_QUESTIONS = _expand_category_questions(HR_BASE_QUESTIONS)
+TECHNICAL_QUESTIONS = _expand_category_questions(TECHNICAL_BASE_QUESTIONS)
+APTITUDE_QUESTIONS = _expand_category_questions(APTITUDE_BASE_QUESTIONS)
+BEHAVIORAL_QUESTIONS = _expand_category_questions(BEHAVIORAL_BASE_QUESTIONS)
 
 
 SEED_QUESTIONS = HR_QUESTIONS + TECHNICAL_QUESTIONS + APTITUDE_QUESTIONS + BEHAVIORAL_QUESTIONS

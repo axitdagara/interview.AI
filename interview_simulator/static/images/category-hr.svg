@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520" role="img" aria-labelledby="title desc">
+  <title id="title">HR interview track</title>
+  <desc id="desc">Two-person conversation card with speech bubbles.</desc>
+  <defs>
+    <linearGradient id="hrbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff7ed"/>
+      <stop offset="1" stop-color="#ffe4e6"/>
+    </linearGradient>
+  </defs>
+  <rect width="760" height="520" rx="24" fill="url(#hrbg)"/>
+  <rect x="78" y="84" width="604" height="352" rx="22" fill="#ffffff" stroke="#fed7aa"/>
+  <circle cx="248" cy="228" r="66" fill="#f97316" opacity="0.9"/>
+  <circle cx="510" cy="228" r="66" fill="#0ea5e9" opacity="0.9"/>
+  <rect x="174" y="302" width="148" height="76" rx="14" fill="#ffedd5"/>
+  <rect x="436" y="302" width="148" height="76" rx="14" fill="#e0f2fe"/>
+  <path d="M170 150h188a14 14 0 0 1 14 14v36a14 14 0 0 1-14 14h-122l-42 26v-26h-24a14 14 0 0 1-14-14v-36a14 14 0 0 1 14-14z" fill="#ffedd5"/>
+  <path d="M390 150h200a14 14 0 0 1 14 14v36a14 14 0 0 1-14 14h-26v26l-40-26h-134a14 14 0 0 1-14-14v-36a14 14 0 0 1 14-14z" fill="#e0f2fe"/>
+</svg>

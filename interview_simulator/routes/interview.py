@@ -203,6 +203,38 @@ def _select_questions_for_round(available_questions, question_count, user_id):
     return selected
 
 
+def _build_option_order_map(selected_questions):
+    option_orders = {}
+    for question in selected_questions:
+        options = list(question.options)
+        if len(options) < 2:
+            continue
+        random.shuffle(options)
+        option_orders[str(question.id)] = options
+    return option_orders
+
+
+def _get_question_options_for_session(state, question_record):
+    option_orders = state.get("option_orders", {})
+    question_key = str(question_record.id)
+    options = list(question_record.options)
+
+    if not options:
+        return []
+
+    ordered = option_orders.get(question_key)
+    if ordered and sorted(ordered, key=str.casefold) == sorted(options, key=str.casefold):
+        return ordered
+
+    shuffled = list(options)
+    if len(shuffled) > 1:
+        random.shuffle(shuffled)
+    option_orders[question_key] = shuffled
+    state["option_orders"] = option_orders
+    session["interview_state"] = state
+    return shuffled
+
+
 def _evaluate_mcq_answer(question_record, selected_option):
     selected = (selected_option or "").strip()
     correct = (question_record.correct_option or "").strip()
@@ -250,7 +282,8 @@ def _save_current_answer_in_state(state, form_data):
 
     selected_option = form_data.get("selected_option", "").strip()
     text_answer = form_data.get("answer", "").strip()
-    answer_value = selected_option or text_answer
+    voice_answer = form_data.get("voice_answer", "").strip()
+    answer_value = selected_option or text_answer or voice_answer
 
     answers = state.get("answers", {})
     if answer_value:
@@ -453,6 +486,7 @@ def setup():
             "answers": {},
             "time_taken": {},
             "question_source": question_source,
+            "option_orders": _build_option_order_map(selected_questions),
         }
 
         return redirect(url_for("interview.question"))
@@ -498,6 +532,8 @@ def question():
         session.pop("interview_state", None)
         return redirect(url_for("interview.setup"))
 
+    question_options = _get_question_options_for_session(state, question_record)
+
     selected_answer = answers.get(str(index), "")
     attempted_count = sum(1 for pos in range(len(question_ids)) if answers.get(str(pos)))
     skipped_count = len(question_ids) - attempted_count
@@ -507,6 +543,7 @@ def question():
     return render_template(
         "interview_question.html",
         question=question_record,
+        question_options=question_options,
         question_number=index + 1,
         total_questions=len(question_ids),
         timer_seconds=state.get("timer_seconds", 90),

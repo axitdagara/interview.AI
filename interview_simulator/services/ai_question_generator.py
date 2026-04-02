@@ -1,4 +1,5 @@
 import json
+import random
 import re
 from typing import List
 
@@ -154,6 +155,7 @@ def _normalize_item(raw_item, category, difficulty_label):
         return None
 
     deduped_options = deduped_options[:4]
+    random.shuffle(deduped_options)
 
     if all(correct_option.casefold() != item.casefold() for item in deduped_options):
         return None

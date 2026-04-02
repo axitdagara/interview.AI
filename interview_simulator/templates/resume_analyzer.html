@@ -67,15 +67,22 @@
                     </div>
                     <div class="col-md-6">
                         <article class="mini-panel h-100">
+                            <p class="metric-label">AI ATS Accuracy Score</p>
+                            <h2 class="mb-1">{{ result.ats_accuracy_score }}%</h2>
+                            <p class="mb-0 text-muted">Estimated ATS compatibility from AI parsing and structure checks.</p>
+                        </article>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <article class="mini-panel h-100">
                             <p class="metric-label">Resume Facts</p>
                             <p class="mb-1"><strong>Role Fit:</strong> {{ result.role_fit }}</p>
                             <p class="mb-1"><strong>Experience:</strong> {{ result.experience_level }}</p>
                             <p class="mb-0"><strong>Words:</strong> {{ result.word_count }}</p>
                         </article>
                     </div>
-                </div>
-
-                <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <article class="mini-panel h-100">
                             <p class="metric-label">JD Alignment Score</p>

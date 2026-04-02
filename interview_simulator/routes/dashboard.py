@@ -329,6 +329,12 @@ def dashboard():
 
     avg_score = round(sum(item.average_score for item in sessions) / len(sessions), 2) if sessions else 0.0
     best_score = round(max((item.average_score for item in sessions), default=0.0), 2)
+    total_interviews = len(sessions)
+
+    if len(sessions) >= 2:
+        improvement_score = round(float(sessions[0].average_score or 0.0) - float(sessions[1].average_score or 0.0), 2)
+    else:
+        improvement_score = 0.0
 
     category_rows = (
         InterviewResponse.query.with_entities(Question.category, func.avg(InterviewResponse.score))
@@ -380,6 +386,13 @@ def dashboard():
     timeline_labels = [item.start_time.strftime("%d %b") for item in timeline_source]
     timeline_scores = [round(item.average_score, 2) for item in timeline_source]
 
+    # Skill buckets are modeled from interview outcomes to visualize recruiter-facing readiness signals.
+    technical_skill = round(max(0.0, min(100.0, avg_score)), 2)
+    communication_skill = round(max(0.0, min(100.0, (enterprise["consistency_score"] * 0.45) + (avg_score * 0.55))), 2)
+    confidence_skill = round(max(0.0, min(100.0, enterprise["readiness_index"])), 2)
+    skill_labels = ["Communication", "Technical", "Confidence"]
+    skill_scores = [communication_skill, technical_skill, confidence_skill]
+
     category_labels = [row[0] for row in category_rows]
     category_scores = [round(float(row[1]), 2) for row in category_rows]
 
@@ -404,13 +417,18 @@ def dashboard():
     return render_template(
         "dashboard.html",
         sessions=sessions[:10],
+        recent_sessions=sessions[:5],
         avg_score=avg_score,
         best_score=best_score,
+        total_interviews=total_interviews,
+        improvement_score=improvement_score,
         weak_category=weak_category,
         timeline_labels=timeline_labels,
         timeline_scores=timeline_scores,
         category_labels=category_labels,
         category_scores=category_scores,
+        skill_labels=skill_labels,
+        skill_scores=skill_scores,
         difficulty_labels=enterprise["difficulty_labels"],
         difficulty_scores=enterprise["difficulty_scores"],
         monthly_labels=monthly_labels,

@@ -30,8 +30,25 @@
 
                 <div class="d-flex flex-wrap gap-2 mb-4 align-items-center">
                     <button class="btn btn-soft" id="speakQuestion" type="button">Read Question Aloud</button>
+                    <button class="btn btn-soft" id="startVoiceAnswer" type="button">Start Voice Answer</button>
+                    <button class="btn btn-outline-secondary" id="stopVoiceAnswer" type="button" disabled>Stop Listening</button>
                     <button class="btn btn-soft" id="toggleFocusMode" type="button">Focus Mode</button>
                     <span class="mono-tag">Shortcuts: 1-4 option, N next, P previous, F focus</span>
+                </div>
+
+                <div class="mini-panel mb-4" id="voiceStatusPanel" aria-live="polite">
+                    <h6 class="mb-2">AI Voice Bot</h6>
+                    <div class="voice-status-row mb-2">
+                        <span class="voice-dot" id="voiceDot" aria-hidden="true"></span>
+                        <p class="mb-0" id="voiceStatusText">Ready: click "Read Question Aloud" and answer by voice.</p>
+                    </div>
+                    <textarea
+                        class="form-control"
+                        id="voiceTranscript"
+                        rows="3"
+                        placeholder="Your voice transcript appears here..."
+                    ></textarea>
+                    <p class="small text-muted mt-2 mb-0">For MCQ, say option text or "option 1", "option 2", etc. For text answers, transcript is copied to your answer box automatically.</p>
                 </div>
 
                 <form method="post" id="questionForm">
@@ -63,6 +80,7 @@
                     {% endif %}
 
                     <input type="hidden" name="time_taken" id="timeTaken" value="0">
+                    <input type="hidden" name="voice_answer" id="voiceAnswer" value="">
 
                     <div class="d-grid d-md-flex gap-2 flex-wrap">
                         <button class="btn btn-soft btn-lg" type="submit" formaction="{{ url_for('interview.previous_question') }}" formmethod="post">Previous Skipped</button>
@@ -106,30 +124,239 @@
     const form = document.getElementById("questionForm");
     const timeTakenInput = document.getElementById("timeTaken");
     const speakButton = document.getElementById("speakQuestion");
+    const startVoiceButton = document.getElementById("startVoiceAnswer");
+    const stopVoiceButton = document.getElementById("stopVoiceAnswer");
     const focusButton = document.getElementById("toggleFocusMode");
     const progressFill = document.getElementById("progressFill");
     const dataElement = document.getElementById("interview-question-data");
+    const answerBox = document.getElementById("answerBox");
+    const voiceTranscript = document.getElementById("voiceTranscript");
+    const voiceAnswer = document.getElementById("voiceAnswer");
+    const voiceStatusText = document.getElementById("voiceStatusText");
+    const voiceDot = document.getElementById("voiceDot");
 
     const config = dataElement ? JSON.parse(dataElement.textContent) : {};
+    const isMcq = Boolean(config.isMcq);
+
+    const setVoiceStatus = (text) => {
+        if (voiceStatusText) {
+            voiceStatusText.textContent = text;
+        }
+    };
+
+    const setVoiceState = (state) => {
+        if (!voiceDot) {
+            return;
+        }
+
+        voiceDot.classList.remove("is-listening", "is-speaking");
+        if (state === "listening") {
+            voiceDot.classList.add("is-listening");
+        }
+        if (state === "speaking") {
+            voiceDot.classList.add("is-speaking");
+        }
+    };
+
+    const normalize = (value) => String(value || "").trim().toLowerCase();
+
+    const selectMcqByTranscript = (transcript) => {
+        const compact = normalize(transcript);
+        if (!compact) {
+            return false;
+        }
+
+        const optionInputs = Array.from(document.querySelectorAll('input[name="selected_option"]'));
+        if (optionInputs.length === 0) {
+            return false;
+        }
+
+        const ordinalMap = {
+            "one": 1,
+            "two": 2,
+            "three": 3,
+            "four": 4,
+            "1": 1,
+            "2": 2,
+            "3": 3,
+            "4": 4,
+        };
+
+        const optionMatch = compact.match(/(?:option\s*)?(one|two|three|four|[1-4])\b/);
+        if (optionMatch) {
+            const mapped = ordinalMap[optionMatch[1]];
+            const input = optionInputs[mapped - 1];
+            if (input) {
+                input.checked = true;
+                input.dispatchEvent(new Event("change", { bubbles: true }));
+                return true;
+            }
+        }
+
+        for (const input of optionInputs) {
+            const value = normalize(input.value);
+            if (value && (compact === value || compact.includes(value) || value.includes(compact))) {
+                input.checked = true;
+                input.dispatchEvent(new Event("change", { bubbles: true }));
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    const syncTranscriptToAnswer = (text) => {
+        const transcript = String(text || "").trim();
+        if (!transcript) {
+            return;
+        }
+
+        if (voiceTranscript) {
+            voiceTranscript.value = transcript;
+        }
+
+        if (voiceAnswer) {
+            voiceAnswer.value = transcript;
+        }
+
+        if (!isMcq && answerBox) {
+            answerBox.value = transcript;
+        }
+
+        if (isMcq) {
+            const matched = selectMcqByTranscript(transcript);
+            setVoiceStatus(matched ? "Voice matched an option." : "Transcript captured. Select an option if needed.");
+        } else {
+            setVoiceStatus("Transcript captured and copied to your answer box.");
+        }
+    };
 
     if (progressFill) {
         const progress = Number(progressFill.dataset.progress || 0);
         progressFill.style.width = `${Math.max(0, Math.min(100, progress))}%`;
     }
 
+    const speakQuestion = () => {
+        if (!window.speechSynthesis) {
+            alert("Text-to-speech is not supported in this browser.");
+            return;
+        }
+
+        const text = String(config.prompt || "");
+        if (!text) {
+            return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.95;
+        utterance.pitch = 1;
+        utterance.onstart = () => {
+            setVoiceState("speaking");
+            setVoiceStatus("AI is speaking the question...");
+        };
+        utterance.onend = () => {
+            setVoiceState("idle");
+            setVoiceStatus("AI finished speaking. You can answer by voice now.");
+        };
+        utterance.onerror = () => {
+            setVoiceState("idle");
+            setVoiceStatus("Unable to read the question aloud in this browser.");
+        };
+
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+    };
+
     if (speakButton) {
-        speakButton.addEventListener("click", () => {
-            if (!window.speechSynthesis) {
-                alert("Text-to-speech is not supported in this browser.");
+        speakButton.addEventListener("click", speakQuestion);
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+
+    if (recognition) {
+        recognition.lang = "en-US";
+        recognition.continuous = false;
+        recognition.interimResults = true;
+
+        recognition.onstart = () => {
+            setVoiceState("listening");
+            if (startVoiceButton) {
+                startVoiceButton.disabled = true;
+            }
+            if (stopVoiceButton) {
+                stopVoiceButton.disabled = false;
+            }
+            setVoiceStatus("Listening... speak your answer.");
+        };
+
+        recognition.onresult = (event) => {
+            let transcript = "";
+            for (let i = event.resultIndex; i < event.results.length; i += 1) {
+                transcript += event.results[i][0].transcript;
+            }
+            if (voiceTranscript) {
+                voiceTranscript.value = transcript.trim();
+            }
+            if (event.results[event.results.length - 1].isFinal) {
+                syncTranscriptToAnswer(transcript);
+            } else {
+                setVoiceStatus("Listening... capturing transcript.");
+            }
+        };
+
+        recognition.onerror = (event) => {
+            setVoiceState("idle");
+            const errorCode = event && event.error ? event.error : "unknown";
+            setVoiceStatus(`Voice capture error: ${errorCode}. You can type your answer.`);
+        };
+
+        recognition.onend = () => {
+            setVoiceState("idle");
+            if (startVoiceButton) {
+                startVoiceButton.disabled = false;
+            }
+            if (stopVoiceButton) {
+                stopVoiceButton.disabled = true;
+            }
+        };
+    } else {
+        if (startVoiceButton) {
+            startVoiceButton.disabled = true;
+        }
+        if (stopVoiceButton) {
+            stopVoiceButton.disabled = true;
+        }
+        setVoiceStatus("Speech recognition is not supported in this browser. Use typing mode.");
+    }
+
+    if (startVoiceButton) {
+        startVoiceButton.addEventListener("click", () => {
+            if (!recognition) {
                 return;
             }
+            try {
+                recognition.start();
+            } catch (error) {
+                setVoiceStatus("Voice recognition is already running.");
+            }
+        });
+    }
 
-            const text = String(config.prompt || "");
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 0.95;
-            utterance.pitch = 1;
-            window.speechSynthesis.cancel();
-            window.speechSynthesis.speak(utterance);
+    if (stopVoiceButton) {
+        stopVoiceButton.addEventListener("click", () => {
+            if (!recognition) {
+                return;
+            }
+            recognition.stop();
+            setVoiceState("idle");
+            setVoiceStatus("Stopped listening.");
+        });
+    }
+
+    if (voiceTranscript) {
+        voiceTranscript.addEventListener("input", (event) => {
+            syncTranscriptToAnswer(event.target.value);
         });
     }
 
@@ -173,7 +400,6 @@
             return;
         }
 
-        const isMcq = Boolean(config.isMcq);
         if (isMcq && /^[1-9]$/.test(event.key)) {
             const selectedIndex = Number(event.key);
             const optionInput = document.getElementById(`option_${selectedIndex}`);
@@ -225,8 +451,20 @@
     form.addEventListener("submit", () => {
         const spent = totalSeconds - remainingSeconds;
         timeTakenInput.value = spent < 0 ? 0 : spent;
+
+        if (!isMcq && voiceAnswer && answerBox && !String(answerBox.value || "").trim()) {
+            answerBox.value = String(voiceAnswer.value || "").trim();
+        }
+
         clearInterval(timerId);
     });
+
+    // Read question automatically to create a true voice-bot flow.
+    if (window.speechSynthesis) {
+        window.setTimeout(() => {
+            speakQuestion();
+        }, 250);
+    }
 })();
 </script>
 {% endblock %}

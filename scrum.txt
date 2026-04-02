@@ -1,0 +1,167 @@
+🗓️ Week 1 — Project Refactor (Architecture Setup)
+Day 1 — Create New Folder Structure
+
+Create a clean project structure by adding folders like app, routes, models, services, and utils to improve maintainability and scalability.
+
+Day 2 — Split Routes
+
+Separate all route logic from app.py into different files such as auth.py, transactions.py, and dashboard.py.
+
+Day 3 — Move Models
+
+Move database models into a models folder and organize them into separate files like user.py, transaction.py, and budget.py.
+
+Day 4 — Create Service Layer
+
+Move business logic from routes into services folder. This makes routes cleaner and follows enterprise architecture.
+
+Day 5 — Test Refactored Project
+
+Run project after restructuring and fix any import errors, routing issues, or broken functionality.
+
+🗓️ Week 2 — Dashboard UI
+Day 6 — Create Sidebar Layout
+
+Design sidebar navigation with menu items like Dashboard, Transactions, Budget, Savings, Reports, Profile.
+
+Day 7 — Create Top Navbar
+
+Add top navigation bar with search, notifications, and profile dropdown.
+
+Day 8 — Create Dashboard Cards
+
+Create dashboard summary cards showing Total Balance, Income, Expense, and Savings.
+
+Day 9 — Improve Dashboard Styling
+
+Add spacing, shadows, colors, and icons to make dashboard look professional.
+
+Day 10 — Make Responsive UI
+
+Ensure dashboard works properly on mobile, tablet, and desktop screens.
+
+🗓️ Week 3 — Charts & Analytics
+Day 11 — Setup Chart Library
+
+Install and configure chart library for analytics dashboard.
+
+Day 12 — Income vs Expense Chart
+
+Create bar chart showing monthly income and expenses.
+
+Day 13 — Monthly Spending Chart
+
+Create pie chart showing spending categories.
+
+Day 14 — Savings Progress Chart
+
+Create chart to show savings goal progress.
+
+Day 15 — Analytics Section
+
+Create separate analytics section in dashboard.
+
+🗓️ Week 4 — Transactions Improvements
+Day 16 — Transaction Categories
+
+Add categories like Food, Travel, Shopping, Bills.
+
+Day 17 — Transaction Filters
+
+Allow filtering transactions by date, category, and type.
+
+Day 18 — Transaction Search
+
+Add search bar to find transactions quickly.
+
+Day 19 — Transaction Sorting
+
+Allow sorting by amount, date, and type.
+
+Day 20 — Improve Transaction UI
+
+Improve transaction table layout and add icons.
+
+🗓️ Week 5 — Budget & Savings
+Day 21 — Budget Alerts
+
+Show alert when user reaches 80% of budget.
+
+Day 22 — Savings Goals
+
+Allow users to create savings goals.
+
+Day 23 — Savings Progress Bar
+
+Add progress bar showing savings completion.
+
+Day 24 — Budget Analytics
+
+Add chart for budget spending analysis.
+
+Day 25 — Budget UI Improvement
+
+Improve budget page design.
+
+🗓️ Week 6 — Security Features
+Day 26 — Login Logs
+
+Track user login activity.
+
+Day 27 — Audit Logs
+
+Track system actions like transfers and updates.
+
+Day 28 — Password Security
+
+Improve password hashing and validation.
+
+Day 29 — Rate Limiting
+
+Prevent too many login attempts.
+
+Day 30 — Two Factor Authentication
+
+Add OTP login for extra security.
+
+🗓️ Week 7 — Reports & Export
+Day 31 — Export CSV
+
+Allow downloading transactions in CSV format.
+
+Day 32 — Export PDF
+
+Allow downloading reports as PDF.
+
+Day 33 — Monthly Report
+
+Generate monthly financial report.
+
+Day 34 — Analytics Report
+
+Generate analytics summary report.
+
+Day 35 — Report UI
+
+Improve report page layout.
+
+🗓️ Week 8 — Final Features & Deployment
+Day 36 — Email Notifications
+
+Send email alerts for transactions and login.
+
+Day 37 — Dark Mode
+
+Add toggle for lightdark theme.
+
+Day 38 — Loading Animations
+
+Add loaders for better UX.
+
+Day 39 — Unit Testing
+
+Write basic tests for core features.
+
+Day 40 — Deployment
+
+Deploy project and test live version.

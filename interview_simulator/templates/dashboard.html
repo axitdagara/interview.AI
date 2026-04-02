@@ -18,39 +18,54 @@
 </section>
 
 <section class="row g-3 mt-1 reveal">
-    <div class="col-md-6 col-xl-2">
-        <article class="panel metric-plate h-100">
+    <div class="col-md-6 col-xl-3">
+        <article class="panel metric-plate dashboard-grid-card dashboard-kpi h-100">
+            <p class="metric-label">Total Interviews Taken</p>
+            <h3>{{ total_interviews }}</h3>
+        </article>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <article class="panel metric-plate dashboard-grid-card dashboard-kpi h-100">
             <p class="metric-label">Average Score</p>
             <h3>{{ avg_score }}%</h3>
         </article>
     </div>
-    <div class="col-md-6 col-xl-2">
-        <article class="panel metric-plate h-100">
+    <div class="col-md-6 col-xl-3">
+        <article class="panel metric-plate dashboard-grid-card dashboard-kpi h-100">
             <p class="metric-label">Best Score</p>
             <h3>{{ best_score }}%</h3>
         </article>
     </div>
-    <div class="col-md-6 col-xl-2">
-        <article class="panel metric-plate h-100">
+    <div class="col-md-6 col-xl-3">
+        <article class="panel metric-plate dashboard-grid-card dashboard-kpi h-100">
+            <p class="metric-label">Improvement</p>
+            <h3>{{ improvement_score }}%</h3>
+            <span class="status-chip {{ 'skill-ok' if improvement_score > 0 else ('skill-miss' if improvement_score < 0 else '') }} mt-2">
+                {% if improvement_score > 0 %}Upward Trend{% elif improvement_score < 0 %}Needs Recovery{% else %}Stable{% endif %}
+            </span>
+        </article>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <article class="panel metric-plate dashboard-grid-card h-100">
             <p class="metric-label">Weak Category</p>
             <h3>{{ weak_category }}</h3>
         </article>
     </div>
-    <div class="col-md-6 col-xl-2">
-        <article class="panel metric-plate h-100">
+    <div class="col-md-6 col-xl-3">
+        <article class="panel metric-plate dashboard-grid-card h-100">
             <p class="metric-label">Total Sessions</p>
             <h3>{{ coach_plan.total_sessions }}</h3>
         </article>
     </div>
-    <div class="col-md-6 col-xl-2">
-        <article class="panel metric-plate h-100">
+    <div class="col-md-6 col-xl-3">
+        <article class="panel metric-plate dashboard-grid-card h-100">
             <p class="metric-label">Readiness Index</p>
             <h3>{{ enterprise.readiness_index }}%</h3>
             <span class="status-chip {{ 'skill-ok' if enterprise.readiness_tone == 'up' else ('skill-miss' if enterprise.readiness_tone == 'down' else '') }} mt-2">{{ enterprise.readiness_band }}</span>
         </article>
     </div>
-    <div class="col-md-6 col-xl-2">
-        <article class="panel metric-plate h-100">
+    <div class="col-md-6 col-xl-3">
+        <article class="panel metric-plate dashboard-grid-card h-100">
             <p class="metric-label">Consistency</p>
             <h3>{{ enterprise.consistency_score }}%</h3>
             <p class="mb-0 text-muted">Quality Gate: <strong>{{ enterprise.quality_gate }}</strong></p>
@@ -132,7 +147,7 @@
     <div class="col-lg-7 reveal">
         <div class="panel chart-shell h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="mb-0">Score Trend</h4>
+                <h4 class="mb-0">Improvement Graph</h4>
                 <span class="mono-tag">Last 8 sessions</span>
             </div>
             <div class="chart-canvas-wrap">
@@ -149,6 +164,47 @@
             <div class="chart-canvas-wrap">
                 <canvas id="categoryChart"></canvas>
             </div>
+        </div>
+    </div>
+</section>
+
+<section class="row g-4 mt-1">
+    <div class="col-lg-6 reveal">
+        <div class="panel chart-shell h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Skill Breakdown</h4>
+                <span class="mono-tag">Communication • Technical • Confidence</span>
+            </div>
+            <div class="chart-canvas-wrap">
+                <canvas id="skillBreakdownChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 reveal">
+        <div class="panel h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3 gap-2">
+                <h4 class="mb-0">Recent Interviews</h4>
+                <a href="{{ url_for('dashboard.history') }}" class="btn btn-soft btn-sm">View All</a>
+            </div>
+            <ul class="feed-list recent-list">
+                {% for item in recent_sessions %}
+                    {% set score_value = item.average_score | float %}
+                    <li class="feed-row">
+                        <div>
+                            <strong>{{ item.category }} • {{ item.difficulty_level or 'All' }}</strong>
+                            <p class="mb-0 text-muted">{{ item.start_time.strftime('%d %b %Y %I:%M %p') if item.start_time else '-' }} • {{ item.total_questions }} questions</p>
+                        </div>
+                        <span class="score-pill {% if score_value < 40 %}score-low{% elif score_value >= 70 %}score-high{% else %}score-mid{% endif %}">{{ item.average_score }}%</span>
+                    </li>
+                {% else %}
+                    <li class="feed-row">
+                        <div>
+                            <strong>No interview records yet.</strong>
+                            <p class="mb-0 text-muted">Start your first interview to populate this list.</p>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
         </div>
     </div>
 </section>
@@ -287,6 +343,8 @@
 <script id="difficulty-scores-data" type="application/json">{{ difficulty_scores | tojson }}</script>
 <script id="monthly-labels-data" type="application/json">{{ monthly_labels | tojson }}</script>
 <script id="monthly-counts-data" type="application/json">{{ monthly_counts | tojson }}</script>
+<script id="skill-labels-data" type="application/json">{{ skill_labels | tojson }}</script>
+<script id="skill-scores-data" type="application/json">{{ skill_scores | tojson }}</script>
 <script>
 (() => {
     const parseData = (id) => {
@@ -302,6 +360,15 @@
     const difficultyValues = parseData("difficulty-scores-data");
     const monthlyLabels = parseData("monthly-labels-data");
     const monthlyValues = parseData("monthly-counts-data");
+    const skillLabels = parseData("skill-labels-data");
+    const skillValues = parseData("skill-scores-data");
+    const persistedTheme = localStorage.getItem("interview-ai-theme");
+    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const resolvedTheme = persistedTheme || (prefersDark ? "dark" : "light");
+    const isDark = resolvedTheme === "dark";
+    const axisColor = isDark ? "#cbd5e1" : "#1e293b";
+    const gridColor = isDark ? "rgba(148, 163, 184, 0.22)" : "rgba(30, 41, 59, 0.12)";
+    const radarPointColor = isDark ? "#f8fafc" : "#0f172a";
 
     const trendCanvas = document.getElementById("trendChart");
     if (trendCanvas) {
@@ -317,12 +384,12 @@
                 datasets: [{
                     label: "Score %",
                     data: trendValues,
-                    borderColor: "#0f766e",
-                    backgroundColor: "rgba(15, 118, 110, 0.18)",
+                    borderColor: "#4f46e5",
+                    backgroundColor: "rgba(79, 70, 229, 0.2)",
                     tension: 0.35,
                     fill: true,
                     pointRadius: 4,
-                    pointBackgroundColor: "#c2410c"
+                    pointBackgroundColor: "#06b6d4"
                 }]
             },
             options: {
@@ -330,7 +397,8 @@
                 maintainAspectRatio: false,
                 resizeDelay: 120,
                 scales: {
-                    y: { suggestedMin: 0, suggestedMax: 100 }
+                    y: { suggestedMin: 0, suggestedMax: 100, ticks: { color: axisColor }, grid: { color: gridColor } },
+                    x: { ticks: { color: axisColor }, grid: { color: gridColor } }
                 },
                 plugins: {
                     legend: { display: false }
@@ -352,7 +420,7 @@
                 labels: categoryLabels,
                 datasets: [{
                     data: categoryValues,
-                    backgroundColor: ["#0f766e", "#0ea5e9", "#c2410c", "#16a34a", "#d946ef"],
+                    backgroundColor: ["#4f46e5", "#06b6d4", "#38bdf8", "#22c55e", "#f59e0b"],
                     borderRadius: 10
                 }]
             },
@@ -361,7 +429,8 @@
                 maintainAspectRatio: false,
                 resizeDelay: 120,
                 scales: {
-                    y: { suggestedMin: 0, suggestedMax: 100 }
+                    y: { suggestedMin: 0, suggestedMax: 100, ticks: { color: axisColor }, grid: { color: gridColor } },
+                    x: { ticks: { color: axisColor }, grid: { color: gridColor } }
                 },
                 plugins: {
                     legend: { display: false }
@@ -383,7 +452,7 @@
                 labels: difficultyLabels,
                 datasets: [{
                     data: difficultyValues,
-                    backgroundColor: ["#16a34a", "#0ea5e9", "#c2410c"],
+                    backgroundColor: ["#22c55e", "#06b6d4", "#4f46e5"],
                     borderRadius: 12
                 }]
             },
@@ -392,7 +461,8 @@
                 maintainAspectRatio: false,
                 resizeDelay: 120,
                 scales: {
-                    y: { suggestedMin: 0, suggestedMax: 100 }
+                    y: { suggestedMin: 0, suggestedMax: 100, ticks: { color: axisColor }, grid: { color: gridColor } },
+                    x: { ticks: { color: axisColor }, grid: { color: gridColor } }
                 },
                 plugins: {
                     legend: { display: false }
@@ -415,12 +485,12 @@
                 datasets: [{
                     label: "Sessions",
                     data: monthlyValues,
-                    borderColor: "#0d9488",
-                    backgroundColor: "rgba(13, 148, 136, 0.18)",
+                    borderColor: "#06b6d4",
+                    backgroundColor: "rgba(6, 182, 212, 0.18)",
                     fill: true,
                     tension: 0.34,
                     pointRadius: 3,
-                    pointBackgroundColor: "#9a3412"
+                    pointBackgroundColor: "#4f46e5"
                 }]
             },
             options: {
@@ -428,7 +498,50 @@
                 maintainAspectRatio: false,
                 resizeDelay: 120,
                 scales: {
-                    y: { suggestedMin: 0, ticks: { precision: 0 } }
+                    y: { suggestedMin: 0, ticks: { precision: 0, color: axisColor }, grid: { color: gridColor } },
+                    x: { ticks: { color: axisColor }, grid: { color: gridColor } }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    const skillCanvas = document.getElementById("skillBreakdownChart");
+    if (skillCanvas) {
+        const existingSkillChart = Chart.getChart(skillCanvas);
+        if (existingSkillChart) {
+            existingSkillChart.destroy();
+        }
+
+        new Chart(skillCanvas, {
+            type: "radar",
+            data: {
+                labels: skillLabels,
+                datasets: [{
+                    label: "Skill Score",
+                    data: skillValues,
+                    borderColor: "#4f46e5",
+                    backgroundColor: "rgba(79, 70, 229, 0.2)",
+                    pointBackgroundColor: "#06b6d4",
+                    pointRadius: 3,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                resizeDelay: 120,
+                scales: {
+                    r: {
+                        suggestedMin: 0,
+                        suggestedMax: 100,
+                        ticks: { stepSize: 20, color: axisColor, backdropColor: "transparent", showLabelBackdrop: false },
+                        angleLines: { color: gridColor },
+                        grid: { color: gridColor },
+                        pointLabels: { color: radarPointColor, font: { size: 13, weight: "600" } }
+                    }
                 },
                 plugins: {
                     legend: { display: false }

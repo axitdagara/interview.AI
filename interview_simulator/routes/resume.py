@@ -118,6 +118,7 @@ def analyzer():
             "filename": filename,
             "role": role,
             "overall_score": overall_score,
+            "ats_accuracy_score": float(analysis.get("ats_accuracy_score", overall_score)),
             "role_fit": analysis.get("role_fit", "Unknown"),
             "experience_level": analysis.get("experience_level", "Unknown"),
             "summary": analysis.get("summary", ""),
