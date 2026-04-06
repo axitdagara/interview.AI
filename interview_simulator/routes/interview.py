@@ -184,7 +184,28 @@ def _get_last_session_question_ids(user_id):
     return {row[0] for row in rows}
 
 
+def _prompt_key(question_record):
+    prompt = str(getattr(question_record, "prompt", "") or "").strip()
+    if not prompt:
+        return f"id:{getattr(question_record, 'id', '')}"
+    return " ".join(prompt.split()).casefold()
+
+
+def _dedupe_questions_by_prompt(question_records):
+    unique = []
+    seen = set()
+    for item in question_records:
+        key = _prompt_key(item)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(item)
+    return unique
+
+
 def _select_questions_for_round(available_questions, question_count, user_id):
+    available_questions = _dedupe_questions_by_prompt(available_questions)
+
     if question_count >= len(available_questions):
         selected = list(available_questions)
         random.shuffle(selected)
@@ -207,35 +228,20 @@ def _select_questions_for_round(available_questions, question_count, user_id):
     return selected
 
 
-def _build_option_order_map(selected_questions):
-    option_orders = {}
-    for question in selected_questions:
-        options = list(question.options)
-        if len(options) < 2:
-            continue
-        random.shuffle(options)
-        option_orders[str(question.id)] = options
-    return option_orders
-
-
 def _get_question_options_for_session(state, question_record):
-    option_orders = state.get("option_orders", {})
-    question_key = str(question_record.id)
     options = list(question_record.options)
 
     if not options:
         return []
 
-    ordered = option_orders.get(question_key)
-    if ordered and sorted(ordered, key=str.casefold) == sorted(options, key=str.casefold):
-        return ordered
+    if len(options) < 2:
+        return options
 
+    session_id = str(state.get("session_id", ""))
+    seed_text = f"{session_id}:{question_record.id}"
+    rng = random.Random(seed_text)
     shuffled = list(options)
-    if len(shuffled) > 1:
-        random.shuffle(shuffled)
-    option_orders[question_key] = shuffled
-    state["option_orders"] = option_orders
-    session["interview_state"] = state
+    rng.shuffle(shuffled)
     return shuffled
 
 
@@ -454,11 +460,16 @@ def setup():
                 flash("No MCQ questions available for selected category and level.", "warning")
                 return redirect(url_for("interview.setup"))
 
+            available_questions = _dedupe_questions_by_prompt(available_questions)
+            if not available_questions:
+                flash("No unique MCQ questions available for selected category and level.", "warning")
+                return redirect(url_for("interview.setup"))
+
             selected_count = min(question_count, len(available_questions))
             if selected_count < question_count:
                 flash(
                     (
-                        f"Only {selected_count} unique questions are available for this filter. "
+                        f"Only {selected_count} non-repeated questions are available for this filter. "
                         f"Starting a {selected_count}-question round."
                     ),
                     "warning",
@@ -489,7 +500,6 @@ def setup():
             "answers": {},
             "time_taken": {},
             "question_source": question_source,
-            "option_orders": _build_option_order_map(selected_questions),
         }
 
         return redirect(url_for("interview.question"))
@@ -729,8 +739,15 @@ def result(session_id):
     )
 
     enriched_rows = []
+    total_score = 0.0
+    total_time = 0.0
+    correct_count = 0
     for row in responses:
         missing = [token for token in (row.missing_keywords or "").split(",") if token]
+        total_score += float(row.score or 0.0)
+        total_time += float(row.time_taken or 0.0)
+        if float(row.score or 0.0) >= 100.0:
+            correct_count += 1
         enriched_rows.append(
             {
                 "question": row.question.prompt,
@@ -745,11 +762,29 @@ def result(session_id):
             }
         )
 
+    total_questions = len(enriched_rows)
+    attempted_count = sum(1 for row in enriched_rows if row["answer"] and row["answer"] != "Not attempted")
+    skipped_count = max(0, total_questions - attempted_count)
+    incorrect_count = max(0, attempted_count - correct_count)
+    accuracy_percent = round((correct_count / total_questions) * 100, 2) if total_questions else 0.0
+    average_time = round(total_time / total_questions, 2) if total_questions else 0.0
+    average_response_score = round(total_score / total_questions, 2) if total_questions else 0.0
+
     return render_template(
         "interview_result.html",
         interview_session=interview_session,
         responses=enriched_rows,
         score_band=_score_band(interview_session.average_score),
+        overall_summary={
+            "total_questions": total_questions,
+            "attempted_count": attempted_count,
+            "correct_count": correct_count,
+            "incorrect_count": incorrect_count,
+            "skipped_count": skipped_count,
+            "accuracy_percent": accuracy_percent,
+            "average_time": average_time,
+            "average_response_score": average_response_score,
+        },
     )
 
 

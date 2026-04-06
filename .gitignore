@@ -18,6 +18,8 @@ ENV/
 !.env.example
 
 # Local databases and runtime data
+app.db
+*.db
 interview_simulator/app.db
 interview_simulator/*.db
 *.sqlite3

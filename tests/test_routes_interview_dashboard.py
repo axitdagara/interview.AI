@@ -1,3 +1,6 @@
+import json
+
+from interview_simulator.extensions import db
 from interview_simulator.models import InterviewSession, Question
 
 
@@ -96,6 +99,124 @@ def test_interview_setup_supports_large_round_count(client, login):
         state = session_data["interview_state"]
 
     assert len(state["question_ids"]) == 50
+
+
+def test_interview_result_shows_overall_details_for_large_round(client, login, app):
+    login()
+
+    setup_response = client.post(
+        "/interview/setup",
+        data={
+            "question_source": "bank",
+            "category": "All",
+            "difficulty_level": "All",
+            "question_count": "25",
+            "timer_seconds": "90",
+            "practice_mode": "balanced",
+        },
+        follow_redirects=False,
+    )
+    assert setup_response.status_code == 302
+
+    with client.session_transaction() as session_data:
+        state = session_data["interview_state"]
+
+    with app.app_context():
+        question = Question.query.get(state["question_ids"][0])
+        assert question is not None
+
+    submit_response = client.post(
+        "/interview/submit",
+        data={"selected_option": question.correct_option, "time_taken": "10"},
+        follow_redirects=False,
+    )
+    assert submit_response.status_code == 302
+
+    result_response = client.get(submit_response.headers["Location"])
+    assert result_response.status_code == 200
+    assert b"Overall Details" in result_response.data
+    assert b"25 questions" in result_response.data
+    assert b"Attempted" in result_response.data
+
+
+def test_interview_round_has_no_repeated_questions(client, login, app):
+    login()
+
+    with app.app_context():
+        duplicate_items = [
+            Question(
+                category="NoRepeatTest",
+                difficulty=2,
+                prompt="What is polymorphism?",
+                ideal_answer="Ability of same interface with different implementations.",
+                options_json=json.dumps(
+                    [
+                        "Same interface, multiple implementations",
+                        "Only compile-time optimization",
+                        "Data encryption method",
+                        "Network protocol",
+                    ]
+                ),
+                correct_option="Same interface, multiple implementations",
+            ),
+            Question(
+                category="NoRepeatTest",
+                difficulty=2,
+                prompt="What is polymorphism?",
+                ideal_answer="Ability of same interface with different implementations.",
+                options_json=json.dumps(
+                    [
+                        "Same interface, multiple implementations",
+                        "Only compile-time optimization",
+                        "Data encryption method",
+                        "Network protocol",
+                    ]
+                ),
+                correct_option="Same interface, multiple implementations",
+            ),
+            Question(
+                category="NoRepeatTest",
+                difficulty=2,
+                prompt="What is encapsulation?",
+                ideal_answer="Bundling data and methods together with controlled access.",
+                options_json=json.dumps(
+                    [
+                        "Bundling data and methods with access control",
+                        "Splitting class into many files",
+                        "Network packet routing",
+                        "Database sharding",
+                    ]
+                ),
+                correct_option="Bundling data and methods with access control",
+            ),
+        ]
+        db.session.add_all(duplicate_items)
+        db.session.commit()
+
+    setup_response = client.post(
+        "/interview/setup",
+        data={
+            "question_source": "bank",
+            "category": "NoRepeatTest",
+            "difficulty_level": "Medium",
+            "question_count": "10",
+            "timer_seconds": "90",
+            "practice_mode": "balanced",
+        },
+        follow_redirects=False,
+    )
+    assert setup_response.status_code == 302
+    assert "/interview/question" in setup_response.headers["Location"]
+
+    with client.session_transaction() as session_data:
+        state = session_data["interview_state"]
+
+    with app.app_context():
+        prompts = [Question.query.get(question_id).prompt for question_id in state["question_ids"]]
+
+    normalized = [" ".join(str(prompt).split()).casefold() for prompt in prompts]
+    assert len(normalized) == len(set(normalized))
+    assert len(state["question_ids"]) == 2
 
 
 def test_dashboard_history_and_exports(client, login):

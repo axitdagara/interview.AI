@@ -17,6 +17,68 @@
     </div>
 </section>
 
+<section class="reveal mb-4">
+    <div class="panel">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div>
+                <span class="kicker">Round Summary</span>
+                <h3 class="mt-2 mb-0">Overall Details</h3>
+            </div>
+            <span class="mono-tag">{{ overall_summary.total_questions }} questions</span>
+        </div>
+        <div class="row g-3">
+            <div class="col-6 col-lg-3">
+                <article class="mini-panel h-100">
+                    <p class="metric-label mb-1">Attempted</p>
+                    <h4 class="mb-0">{{ overall_summary.attempted_count }}</h4>
+                </article>
+            </div>
+            <div class="col-6 col-lg-3">
+                <article class="mini-panel h-100">
+                    <p class="metric-label mb-1">Correct</p>
+                    <h4 class="mb-0">{{ overall_summary.correct_count }}</h4>
+                </article>
+            </div>
+            <div class="col-6 col-lg-3">
+                <article class="mini-panel h-100">
+                    <p class="metric-label mb-1">Incorrect</p>
+                    <h4 class="mb-0">{{ overall_summary.incorrect_count }}</h4>
+                </article>
+            </div>
+            <div class="col-6 col-lg-3">
+                <article class="mini-panel h-100">
+                    <p class="metric-label mb-1">Skipped</p>
+                    <h4 class="mb-0">{{ overall_summary.skipped_count }}</h4>
+                </article>
+            </div>
+            <div class="col-6 col-lg-3">
+                <article class="mini-panel h-100">
+                    <p class="metric-label mb-1">Accuracy</p>
+                    <h4 class="mb-0">{{ overall_summary.accuracy_percent }}%</h4>
+                </article>
+            </div>
+            <div class="col-6 col-lg-3">
+                <article class="mini-panel h-100">
+                    <p class="metric-label mb-1">Avg Response Score</p>
+                    <h4 class="mb-0">{{ overall_summary.average_response_score }}%</h4>
+                </article>
+            </div>
+            <div class="col-6 col-lg-3">
+                <article class="mini-panel h-100">
+                    <p class="metric-label mb-1">Avg Time / Q</p>
+                    <h4 class="mb-0">{{ overall_summary.average_time }} sec</h4>
+                </article>
+            </div>
+            <div class="col-6 col-lg-3">
+                <article class="mini-panel h-100">
+                    <p class="metric-label mb-1">Total Questions</p>
+                    <h4 class="mb-0">{{ overall_summary.total_questions }}</h4>
+                </article>
+            </div>
+        </div>
+    </div>
+</section>
+
 <section class="reveal">
     <div class="panel table-panel">
         <h3 class="mb-3">Question-Wise Feedback</h3>
